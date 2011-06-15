@@ -96,7 +96,7 @@ my @filter_tests = (
     # IN/NOT_IN/==/!=
     'K => @V',
     { k => ['v1','v2']},
-    { or => [{term=>{k=>'v1'}},{term=>{k=>'v2'}}]},
+    { terms=>{k=>['v1','v2']}},
 
     'K => -and,@V',
     ['-and'=>[{k=>'v1'},{k=>'v2'}]],

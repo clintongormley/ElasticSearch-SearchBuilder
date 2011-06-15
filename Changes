@@ -1,5 +1,5 @@
 Revision history for ElasticSearch-SearchBuilder
 
-0.01    Date/time
-        First version, released on an unsuspecting world.
+0.01    2011-06-15
+        First alpha release, without test suite, for RFC purposes
 

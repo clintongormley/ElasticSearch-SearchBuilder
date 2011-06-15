@@ -1287,6 +1287,8 @@ L<ElasticSearch::SearchBuilder> is an L<SQL::Abstract>-like query language
 which exposes the full power of the query DSL, but in a more compact,
 Perlish way.
 
+B<THIS MODULE IS NOT READY TO USE - IT IS COMPLETELY UNTESTED ALPHA CODE>
+
 =cut
 
 =head1 SYNOPSIS
