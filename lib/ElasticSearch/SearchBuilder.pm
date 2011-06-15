@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Scalar::Util ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 my %SPECIAL_OPS = (
     query => {
@@ -1399,7 +1399,7 @@ Key-value pairs are converted to term queries or term filters:
 
 =cut
 
-=head2 AND/OR LOGIC
+=head1 AND/OR LOGIC
 
 Arrays are OR'ed, hashes are AND'ed:
 
@@ -1453,7 +1453,7 @@ instead of:
 
 Also, see L</"NESTING AND COMBINING">.
 
-=head2 FIELD OPERATORS
+=head1 FIELD OPERATORS
 
 Most operators (eg C<=>, C<gt>, C<geo_distance> etc) are applied to a
 particular field. These are known as C<Field Operators>. For example:
