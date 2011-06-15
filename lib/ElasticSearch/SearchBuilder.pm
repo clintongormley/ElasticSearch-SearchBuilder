@@ -1673,8 +1673,8 @@ B<Note>: for filter clauses, the C<gt>,C<gte>,C<lt> and C<lte> operators
 imply a C<range> filter, while the C<< < >>, C<< <= >>, C<< > >> and C<< >= >>
 operators imply a C<numeric_range> filter.
 
-B<<This does not mean that you should use the C<numeric_range> version
-for any field which contains numbers!>>
+B<< This does not mean that you should use the C<numeric_range> version
+for any field which contains numbers! >>
 
 The C<numeric_range> query should be used for numbers/datetimes which
 have many distinct values, eg C<ID> or C<last_modified>.  If you have a numeric
