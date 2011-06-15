@@ -1473,7 +1473,7 @@ Some field operators are available as symbols (eg C<=>, C<*>, C<^>, C<gt>) and
 others as words (eg C<geo_distance> or C<-geo_distance> - the dash is optional).
 
 Multiple field operators can be applied to a single field.
-Use {} to imply C<this AND that>:
+Use C<{}> to imply C<this AND that>:
 
     # Field foo has any value from 100 to 200
     { foo => { gte => 100, lte => 200 }}
@@ -1484,7 +1484,7 @@ Use {} to imply C<this AND that>:
         '!=' => 'python'
     }}
 
-Or in [] to imply C<this OR that>
+Or C<[]> to imply C<this OR that>
 
     # foo is 5 or foo greater than 10
     { foo => [
