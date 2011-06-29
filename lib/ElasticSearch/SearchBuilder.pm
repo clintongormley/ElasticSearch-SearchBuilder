@@ -29,8 +29,6 @@ my %SPECIAL_OPS = (
         '=='          => [ 'terms',  0 ],
         '!='          => [ 'terms',  1 ],
         '<>'          => [ 'terms',  1 ],
-        'in'          => [ 'terms',  0 ],
-        'not_in'      => [ 'terms',  1 ],
         '>'           => [ 'range',  0 ],
         '>='          => [ 'range',  0 ],
         '<'           => [ 'range',  0 ],
