@@ -516,11 +516,16 @@ sub _unary_child {
 #======================================================================
 
 #===================================
+sub _query_unary_qs { shift->_query_unary_query_string( @_, 'qs' ) }
+#===================================
+
+#===================================
 sub _query_unary_query_string {
 #===================================
-    my ( $self, $v ) = @_;
+    my ( $self, $v, $op ) = @_;
+    $op ||= 'query_string';
     return $self->_SWITCH_refkind(
-        "Unary query -query_string",
+        "Unary query -$op",
         $v,
         {   SCALAR  => sub { return { query_string => { query => $v } } },
             HASHREF => sub {
@@ -601,6 +606,7 @@ sub _query_unary_custom_score {
                     [ 'query',  'script' ],
                     [ 'params', 'lang' ]
                 );
+                $p->{query} = $self->_recurse( 'query', $p->{query} );
                 return { custom_score => $p };
             },
         }
@@ -807,7 +813,11 @@ sub _query_field_text_phrase_prefix {
 }
 
 #===================================
-sub _query_field_field {
+sub _query_field_qs { shift->_query_field_query_string(@_) }
+#===================================
+
+#===================================
+sub _query_field_query_string {
 #===================================
     shift->_query_field_generic(
         @_, 'field',
@@ -830,7 +840,11 @@ sub _query_field_generic {
         $val,
         {   SCALAR   => sub { return { $op => { $k => $val } } },
             ARRAYREF => sub {
-                my $method = "_query_field_${op}";
+                my $method
+                    = $self->can("_query_field_${op}")
+                    || $self->can("_query_field_${orig_op}")
+                    || croak
+                    "Couldn't find method _query_field_${op} or _query_field_${orig_op}";
                 my @queries
                     = map { $self->$method( $k, $orig_op, $_ ) } @$val;
                 return $self->_join_clauses( 'query', 'or', \@queries ),;
