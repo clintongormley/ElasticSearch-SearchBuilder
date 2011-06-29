@@ -713,6 +713,18 @@ sub _filter_unary_type {
 }
 
 #===================================
+sub _filter_unary_limit {
+#===================================
+    my ( $self, $v ) = @_;
+    return $self->_SWITCH_refkind(
+        "Unary filter -limit",
+        $v,
+        {   SCALAR => sub { return { limit => { value => $v } } }
+        }
+    );
+}
+
+#===================================
 sub _filter_unary_script {
 #===================================
     my ( $self, $v ) = @_;
