@@ -9,22 +9,20 @@ our $VERSION = '0.02';
 
 my %SPECIAL_OPS = (
     query => {
-        '='      => [ 'terms',    0 ],
-        '=='     => [ 'terms',    0 ],
-        '!='     => [ 'terms',    1 ],
-        '<>'     => [ 'terms',    1 ],
-        'in'     => [ 'terms',    0 ],
-        'not_in' => [ 'terms',    1 ],
-        '>'      => [ 'range',    0 ],
-        '>='     => [ 'range',    0 ],
-        '<'      => [ 'range',    0 ],
-        '<='     => [ 'range',    0 ],
-        'gt'     => [ 'range',    0 ],
-        'lt'     => [ 'range',    0 ],
-        'gte'    => [ 'range',    0 ],
-        'lte'    => [ 'range',    0 ],
-        '^'      => [ 'prefix',   0 ],
-        '*'      => [ 'wildcard', 0 ],
+        '='   => [ 'text',               0 ],
+        '=='  => [ 'text_phrase',        0 ],
+        '!='  => [ 'text',               1 ],
+        '<>'  => [ 'text',               1 ],
+        '>'   => [ 'range',              0 ],
+        '>='  => [ 'range',              0 ],
+        '<'   => [ 'range',              0 ],
+        '<='  => [ 'range',              0 ],
+        'gt'  => [ 'range',              0 ],
+        'lt'  => [ 'range',              0 ],
+        'gte' => [ 'range',              0 ],
+        'lte' => [ 'range',              0 ],
+        '^'   => [ 'text_phrase_prefix', 0 ],
+        '*'   => [ 'wildcard',           0 ],
     },
     filter => {
         '='           => [ 'terms',  0 ],
@@ -189,36 +187,21 @@ sub _hashpair_ARRAYREF {
         = $v[0] && ( $v[0] eq '-and' || $v[0] eq '-or' )
         ? shift @v
         : '';
-
-    my $scalars     = 0;
-    my @distributed = map {
-        defined and !ref and $scalars++;
-        +{ $k => $_ }
-    } @v;
-
     my $logic = $op ? substr( $op, 1 ) : '';
+    my @distributed = map { +{ $k => $_ } } @v;
 
     # if all values are defined scalars then try to use
     # a terms query/filter
 
-    if ( $scalars == @distributed ) {
-        if ( $logic eq 'and' ) {
-            if ( $type eq 'query' ) {
-                return $self->_query_field_terms(
-                    $k, 'terms',
-                    {   value         => \@v,
-                        minimum_match => $scalars
-                    }
-                );
-            }
+    if ( $logic ne 'and' and $type eq 'filter' ) {
+        my $scalars = 0;
+        for (@v) {
+            $scalars++ if defined and !ref;
         }
-        else {
-            return $type eq 'query'
-                ? $self->_query_field_terms( $k, 'terms', \@v )
-                : $self->_filter_field_terms( $k, 'terms', \@v );
-        }
-    }
+        return $self->_filter_field_terms( $k, 'terms', \@v )
+            if $scalars == @v;
 
+    }
     unshift @distributed, $op
         if $op;
 
@@ -274,7 +257,9 @@ sub _hashpair_SCALARREF {
 sub _hashpair_SCALAR {
 #===================================
     my ( $self, $type, $k, $v ) = @_;
-    return { term => { $k => $v } };
+    return $type eq 'query'
+        ? { text => { $k => $v } }
+        : { term => { $k => $v } };
 }
 
 #===================================
@@ -805,16 +790,21 @@ sub _query_field_text {
 }
 
 #===================================
-sub _query_field_phrase {
+sub _query_field_phrase        { shift->_query_field_text_phrase(@_) }
+sub _query_field_phrase_prefix { shift->_query_field_text_phrase_prefix(@_) }
 #===================================
-    shift->_query_field_generic( @_, 'phrase', ['query'],
+
+#===================================
+sub _query_field_text_phrase {
+#===================================
+    shift->_query_field_generic( @_, 'text_phrase', ['query'],
         [qw(boost slop analyzer)] );
 }
 
 #===================================
-sub _query_field_phrase_prefix {
+sub _query_field_text_phrase_prefix {
 #===================================
-    shift->_query_field_generic( @_, 'phrase_prefix', ['query'],
+    shift->_query_field_generic( @_, 'text_phrase_prefix', ['query'],
         [qw(boost analyzer slop max_expansions)] );
 }
 
