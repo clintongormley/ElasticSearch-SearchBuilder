@@ -858,6 +858,10 @@ sub _query_field_generic {
 }
 
 #===================================
+sub _query_field_term { shift->_query_field_terms(@_) }
+#===================================
+
+#===================================
 sub _query_field_terms {
 #===================================
     my ( $self, $k, $op, $val ) = @_;
@@ -865,8 +869,7 @@ sub _query_field_terms {
     return $self->_SWITCH_refkind(
         "Query field operator -$op",
         $val,
-        {   UNDEF   => sub { $self->_hashpair_UNDEF( 'query',  $k, $val ) },
-            SCALAR  => sub { $self->_hashpair_SCALAR( 'query', $k, $val ) },
+        {   SCALAR  => sub { return { term => { $k => $val } } },
             HASHREF => sub {
                 my $v = delete $val->{value};
                 $v = $v->[0] if ref $v eq 'ARRAY' and @$v < 2;
@@ -997,6 +1000,10 @@ sub _query_field_range {
 #======================================================================
 # Filter field ops
 #======================================================================
+
+#===================================
+sub _filter_field_term { shift->_filter_field_terms(@_) }
+#===================================
 
 #===================================
 sub _filter_field_terms {
