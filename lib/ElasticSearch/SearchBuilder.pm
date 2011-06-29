@@ -40,8 +40,8 @@ my %SPECIAL_OPS = (
         '^'           => [ 'prefix', 0 ],
         'exists'      => [ 'exists', 0 ],
         'missing'     => [ 'exists', 0 ],
-        'not_exists'  => [ 'exists', 1 ],
-        'not_missing' => [ 'exists', 1 ],
+        'not_exists'  => [ 'exists', 0 ],
+        'not_missing' => [ 'exists', 0 ],
     }
 );
 
@@ -55,11 +55,9 @@ my %RANGE_MAP = (
 #===================================
 sub new {
 #===================================
-    my $self  = shift;
-    my $class = ref($self) || $self;
-    my %opt   = ( ref $_[0] eq 'HASH' ) ? %{ $_[0] } : @_;
-
-    return bless \%opt, $class;
+    my $proto = shift;
+    my $class = ref($proto) || $proto;
+    return bless {}, $class;
 }
 
 #===================================
@@ -80,7 +78,8 @@ sub _top_ARRAYREF {
     my @args = @$params;
     my @clauses;
 
-    while ( my $el = shift @args ) {
+    while (@args) {
+        my $el     = shift @args;
         my $clause = $self->_SWITCH_refkind(
             'ARRAYREFs',
             $el,
@@ -116,14 +115,16 @@ sub _top_HASHREF {
         # ($k => $v) is either a special unary op or a regular hashpair
         if ( $k =~ /^-./ ) {
             my $op = substr $k, 1;
+            my $not = $op =~ s/^not_//;
+            croak "Invalid op 'not_$op'"
+                if $not and $op eq 'cache' || $op eq 'nocache';
+
             if ( $op eq 'filter' and $type eq 'query' ) {
                 $filter = $self->_recurse( 'filter', $v );
+                $filter = $self->_negate_clause( 'filter', $filter )
+                    if $not;
                 next;
             }
-
-            my $not = $op =~ s/^not_//;
-            croak "Invalid op 'not_$op"
-                if $not and $op eq 'cache' || $op eq 'nocache';
 
             my $handler = $self->can("_${type}_unary_$op")
                 or croak "Unknown $type op '$op'";
@@ -315,20 +316,21 @@ sub _merge_bool_queries {
             my @keys = keys %$clauses;
             if ( $op eq 'must_not' ) {
                 if ( @keys == 1 and $keys[0] eq 'must_not' ) {
-                    push @{ $bool{must} }, @{ $clauses->{must_not} };
+                    push @{ $bool{should} }, @{ $clauses->{must_not} };
                     next;
                 }
-                if ( !$clauses->{should} and @$queries == 1 ) {
-                    my ( $must, $not )
-                        = delete @{$clauses}{ 'must', 'must_not' };
-                    $clauses->{must_not} = $must if $must;
-                    $clauses->{must}     = $not  if $not;
+                unless ( $clauses->{must} or @$queries != 1 ) {
+                    my ( $should, $not )
+                        = delete @{$clauses}{ 'should', 'must_not' };
+                    $clauses->{must_not} = $should if $should;
+                    $clauses->{should}   = $not    if $not;
                 }
             }
 
-            if (   $op eq 'must'
-                or $op eq 'should' and @keys == 1 and $clauses->{$op}
-                or $op eq 'must_not' and !$clauses->{should} )
+            if (   $op eq 'must_not' and !$clauses->{must}
+                or $op eq 'should' and @keys == 1 and $clauses->{should}
+                or $op eq 'must'
+                and !( $clauses->{should} and $bool{should} ) )
             {
                 push @{ $bool{$_} }, @{ $clauses->{$_} } for keys %$clauses;
                 next;
@@ -458,14 +460,15 @@ sub _unary_ids {
     return $self->_SWITCH_refkind(
         "Unary -ids",
         $v,
-        {   SCALAR   => { return { ids => { values => [$v] } } },
+        {   SCALAR   => sub { return { ids => { values => [$v] } } },
             ARRAYREF => sub {
                 return unless @$v;
                 return { ids => { values => $v } };
             },
             HASHREF => sub {
-                my $p
-                    = $self->_hash_params( 'ids', $v, ['values'], ['type'] );
+                my $p = $self->_hash_params( 'ids', $v, ['values'],
+                    $type eq 'query' ? [ 'type', 'boost' ] : ['type'] );
+                $p->{values} = [ $p->{values} ] unless ref $p->{values};
                 return { ids => $p };
             },
         }
@@ -475,7 +478,7 @@ sub _unary_ids {
 #===================================
 sub _query_unary_top_children {
 #===================================
-    my ( $self, $type, $v ) = @_;
+    my ( $self, $v ) = @_;
     return $self->_SWITCH_refkind(
         "Unary query -top_children",
         $v,
@@ -652,7 +655,7 @@ sub _query_unary_bool {
                     ]
                 );
                 $p = $self->_multi_queries( $p, 'must', 'should',
-                    'should_not' );
+                    'must_not' );
                 return { bool => $p };
             },
         }
@@ -985,24 +988,32 @@ sub _query_field_range {
     my ( $self, $k, $op, $val ) = @_;
 
     my $es_op = $RANGE_MAP{$op} || $op;
+    if ( $op eq 'range' ) {
+        return $self->_SWITCH_refkind(
+            "Query field operator -range",
+            $val,
+            {   HASHREF => sub {
+                    my $p = $self->_hash_params(
+                        'range', $val,
+                        [],
+                        [   qw(from to include_lower include_upper
+                                gt gte lt lte boost)
+                        ]
+                    );
+                    return { range => { $k => $p } };
+                },
+                SCALAR => sub {
+                    croak "range op does not accept a scalar. Instead, use "
+                        . "a comparison operator, eg: gt, lt";
+                },
+            }
+        );
+    }
 
     return $self->_SWITCH_refkind(
         "Query field operator -$op",
         $val,
-        {   HASHREF => sub {
-                my $p = $self->_hash_params(
-                    'range', $val,
-                    [],
-                    [   qw(from to include_lower include_upper
-                            gt gte lt lte boost)
-                    ]
-                );
-                return { range => { $k => $p } };
-            },
-            SCALAR => sub {
-                croak "range op does not accept a scalar. Instead, use "
-                    . "a comparison operator, eg: gt, lt"
-                    if $es_op eq 'range';
+        {   SCALAR => sub {
                 return { 'range' => { $k => { $es_op => $val } } };
             },
         }
@@ -1058,6 +1069,23 @@ sub _filter_field_range {
         $type  = 'range';
     }
 
+    if ( $op eq 'range' ) {
+        return $self->_SWITCH_refkind(
+            "Filter field operator -$op",
+            $val,
+            {   HASH => sub {
+                    my $p = $self->_hash_params(
+                        'range', $val,
+                        [],
+                        [   qw(from to include_lower include_upper
+                                gt gte lt lte boost)
+                        ]
+                    );
+                    return { range => { $k => $p } };
+                },
+            }
+        );
+    }
     return $self->_SWITCH_refkind(
         "Filter field operator -$op",
         $val,
@@ -1262,7 +1290,9 @@ sub _hash_params {
     }
     if ($opt) {
         for (@$opt) {
-            $params{$_} = delete $val->{$_} || next;
+            next unless exists $val->{$_};
+            my $val = delete $val->{$_};
+            $params{$_} = defined $val ? $val : '';
         }
     }
 
@@ -1278,9 +1308,11 @@ sub _multi_queries {
     my $self   = shift;
     my $params = shift;
     for my $key (@_) {
-        my $v = $params->{$key} or next;
+        my $v = delete $params->{$key} or next;
         my @q = ref $v eq 'ARRAY' ? @$v : $v;
-        $params->{$key} = [ map { $self->_recurse( 'query', $_ ) } @q ];
+        my @queries = map { $self->_recurse( 'query', $_ ) } @q;
+        next unless @queries;
+        $params->{$key} = \@queries;
     }
     return $params;
 }
