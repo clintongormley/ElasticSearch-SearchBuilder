@@ -7,8 +7,13 @@ MANIFEST			This list of files
 META.json
 META.yml
 README
-t/00-load.t
-t/boilerplate.t
+t/00-basic.t
+t/01-filters-field-ops.t
+t/02-filters-unary-ops.t
+t/03-filters-logic.t
+t/04-queries-field-ops.t
+t/05-queries-unary-ops.t
+t/06-queries-logic.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t

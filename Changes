@@ -1,8 +1,4 @@
-Revision history for ElasticSearch-SearchBuilder
+Revision history for ElasticSearch::SearchBuilder
+0.03    2011-06-30
 
-0.02    2011-06-15
-        Minor doc and required module changes
-
-0.01    2011-06-15
-        First alpha release, without test suite, for RFC purposes
-
+        First public release for ElasticSearch::SearchBuilder

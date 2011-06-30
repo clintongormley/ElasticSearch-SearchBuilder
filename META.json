@@ -16,6 +16,8 @@
    "prereqs" : {
       "build" : {
          "requires" : {
+            "Test::Differences" : 0,
+            "Test::Exception" : 0,
             "Test::More" : 0
          }
       },
@@ -33,7 +35,7 @@
    "provides" : {
       "ElasticSearch::SearchBuilder" : {
          "file" : "lib/ElasticSearch/SearchBuilder.pm",
-         "version" : "0.01"
+         "version" : "0.03"
       }
    },
    "release_status" : "stable",
@@ -48,5 +50,5 @@
          "url" : "http://github.com/clintongormley/ElasticSearch-SearchBuilder/"
       }
    },
-   "version" : "0.01"
+   "version" : "0.03"
 }

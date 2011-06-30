@@ -6,6 +6,8 @@ WriteMakefile
   'VERSION_FROM' => 'lib/ElasticSearch/SearchBuilder.pm',
   'PREREQ_PM' => {
                    'Scalar::Util' => 0,
+                   'Test::Differences' => 0,
+                   'Test::Exception' => 0,
                    'Test::More' => 0
                  },
   'INSTALLDIRS' => 'site',
