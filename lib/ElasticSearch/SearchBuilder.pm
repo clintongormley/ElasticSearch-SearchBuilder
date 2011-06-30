@@ -26,7 +26,6 @@ my %SPECIAL_OPS = (
     },
     filter => {
         '='           => [ 'terms',  0 ],
-        '=='          => [ 'terms',  0 ],
         '!='          => [ 'terms',  1 ],
         '<>'          => [ 'terms',  1 ],
         '>'           => [ 'range',  0 ],

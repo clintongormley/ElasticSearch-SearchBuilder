@@ -72,7 +72,7 @@ test_filters(
 
 );
 
-for my $op (qw(= == term terms)) {
+for my $op (qw(= term terms)) {
     test_filters(
         "FIELD OPERATOR: $op",
 
