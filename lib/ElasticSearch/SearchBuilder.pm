@@ -1339,7 +1339,9 @@ L<ElasticSearch::SearchBuilder> is an L<SQL::Abstract>-like query language
 which exposes the full power of the query DSL, but in a more compact,
 Perlish way.
 
-B<THIS MODULE IS NOT READY TO USE - IT IS COMPLETELY UNTESTED ALPHA CODE>
+B<This module is currently Beta - the API might yet change.> If you have
+suggestions for improvements to the API or the documenation, please
+contact me.
 
 =cut
 
@@ -1406,52 +1408,149 @@ read L</"ELASTICSEARCH CONCEPTS"> before continuing.
 This module was inspired by L<SQL::Abstract> but they are not compatible with
 each other.
 
-All constructs described below can be applied to both queries and filters,
-unless stated otherwise. If using the method L</"-query"> then it starts off
-in "query" mode, and if using the method L</"-filter"> then it starts off
-in filter mode.  For example:
+The easiest way to explain how the syntax works is to give examples:
+
+=head2 QUERY / FILTER CONTEXT
+
+There are two contexts:
+
+=over
+
+=item *
+
+C<filter> context
+
+Filter are fast and cacheable. They should be used to include/exclude docs,
+based on simple term values.  For instance, exclude all docs that have
+neither tag C<perl> nor C<python>.
+
+Typically, most of your clauses should be filters, which reduce the number
+of docs that need to be passed to the query.
+
+=item *
+
+C<query> context
+
+Queries are smarter than filters, but more expensive, as they have
+to calculate search relevance (ie C<_score>).
+
+They should be used where:
+
+=over
+
+=item *
+
+relevance is important, eg: in a search for tags C<perl> or C<python>,
+a doc that has BOTH tags is more relevant than a doc that has only one
+
+=item *
+
+where search terms need to be analyzed as full text, eg: find me all
+docs where the C<content> field includes the words "Perl is GREAT", no matter
+how those words are capitalized.
+
+=back
+
+=back
+
+The available operators (and the query/filter clauses that are generated)
+differ according to which context you are in.
+
+The initial context depends upon which method you use: L</"query()"> puts
+you into C<query> context, and L</"filter()"> into C<filter> context.
+
+However, you can switch from one context to another as follows:
 
     $sb->query({
 
-        # query mode
+        # query context
         foo     => 1,
         bar     => 2,
 
         -filter => {
-            # filter mode
+            # filter context
             foo     => 1,
             bar     => 2,
 
             -query  => {
-                # query mode
+                # query context
                 foo => 1
             }
         }
     })
 
-The easiest way to explain how the syntax works is to give examples:
 
-=head1 KEY-VALUE PAIRS
+=head3 -filter | -not_filter
 
-Key-value pairs are converted to term queries or term filters:
+Switch from query context to filter context:
+
+    # query field content for 'brown cow', and filter documents
+    # where status is 'active' and tags contains the term 'perl'
+    {
+        content => { text => 'brown cow' },
+        -filter => {
+            status => 'active',
+            tags   => 'perl'
+        }
+    }
+
+
+    # no query, just a filter:
+    { -filter => { status => 'active' }}
+
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/filtered-query.html>
+and L<http://www.elasticsearch.org/guide/reference/query-dsl/constant-score-query.html>
+
+=head3 -query | -not_query
+
+Use a query as a filter:
+
+    # query field content for 'brown cow', and filter documents
+    # where status is 'active', tags contains the term 'perl'
+    # and a text query on field title contains 'important'
+    {
+        content => { text => 'brown cow' },
+        -filter => {
+            status => 'active',
+            tags   => 'perl',
+            -query => {
+                title => { text => 'important' }
+            }
+        }
+    }
+
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/query-filter.html>
+
+=head2 KEY-VALUE PAIRS
+
+Key-value pairs are equivalent to the C<=> operator, discussed below. They are
+converted to C<text> queries or C<term> filters:
 
     # Field 'foo' contains term 'bar'
+    # equiv: { foo => { '=' => 'bar' }}
     { foo => 'bar' }
 
+
+
     # Field 'foo' contains 'bar' or 'baz'
+    # equiv: { foo => { '=' => ['bar','baz'] }}
     { foo => ['bar','baz']}
 
+
     # Field 'foo' contains terms 'bar' AND 'baz'
+    # equiv: { foo => { '-and' => [ {'=' => 'bar'}, {'=' => 'baz'}] }}
     { foo => ['-and','bar','baz']}
+
 
     ### FILTER ONLY ###
 
     # Field 'foo' is missing ie has no value
+    # equiv: { -missing => 'foo' }
     { foo => undef }
 
 =cut
 
-=head1 AND/OR LOGIC
+=head2 AND|OR LOGIC
 
 Arrays are OR'ed, hashes are AND'ed:
 
@@ -1474,7 +1573,7 @@ Arrays are OR'ed, hashes are AND'ed:
     # tags begins with prefix 'p' or 'r'
     { tags => { '^' => [ 'p','r' ] }}
 
-The logic in an array can changed from OR to AND by making the first
+The logic in an array can changed from C<OR> to C<AND> by making the first
 element of the array ref C<-and>:
 
     # tags has term 'perl' AND 'python'
@@ -1494,6 +1593,9 @@ a field operator (see </"FIELD OPERATORS">) is not special:
     # WRONG
     { tags => { '=' => [ '-and','perl','python' ] }}
 
+    # RIGHT
+    { tags => ['-and' => [ {'=' => 'perl'}, {'=' => 'python'} ] ]}
+
 ...otherwise you would never be able to search for the term C<-and>. So if
 you might possibly have the terms C<-and> or C<-or> in your data, use:
 
@@ -1503,9 +1605,57 @@ instead of:
 
     { foo => [....]}
 
-Also, see L</"NESTING AND COMBINING">.
+=head3 -and | -or | -not
 
-=head1 FIELD OPERATORS
+These unary operators allow you apply C<and>, C<or> and C<not> logic to
+nested queries or filters.
+
+    # Field foo has both terms 'bar' and 'baz'
+    { -and => [
+            foo => 'bar',
+            foo => 'baz'
+    ]}
+
+    # Field 'name' contains 'john smith', or the name field is missing
+    # and the 'desc' field contains 'john smith'
+
+    { -or => [
+        { name => 'John Smith' },
+        {
+            desc     => 'John Smith'
+            -filter  => { -missing => 'name' },
+        }
+    ]}
+
+The C<-and>, C<-or> and C<-not> constructs emit C<bool> queries when
+in query context, and C<and>, C<or> and C<not> clauses when in filter
+context.
+
+See:
+
+=over
+
+=item *
+
+L<http://www.elasticsearch.org/guide/reference/query-dsl/bool-query.html>
+
+=item *
+
+L<http://www.elasticsearch.org/guide/reference/query-dsl/and-filter.html>
+
+=item *
+
+L<http://www.elasticsearch.org/guide/reference/query-dsl/or-filter.html>
+
+=item *
+
+L<http://www.elasticsearch.org/guide/reference/query-dsl/not-filter.html>
+
+=back
+
+
+
+=head2 FIELD OPERATORS
 
 Most operators (eg C<=>, C<gt>, C<geo_distance> etc) are applied to a
 particular field. These are known as C<Field Operators>. For example:
@@ -1552,7 +1702,7 @@ All word operators may be negated by adding C<not_> to the beginning, eg:
     { foo => { not_prefix => ['bar','baz'] }}
 
 
-=head1 UNARY OPERATORS
+=head2 UNARY OPERATORS
 
 There are other operators which don't fit this
 C<< { field => { op => value}} >>model.
@@ -1612,91 +1762,150 @@ Unary operators may also be prefixed with C<not_> to negate their meaning.
 
 =cut
 
-=head1 TERM QUERIES / FILTERS
+=head1 EQUALITY
 
-=head2 = | == | in | != | <> | not_in
+These operators answer the question: "Does this field contain this term?"
+
+Filter equality operators work only with exact terms, while query equality
+operators (the C<text> family of queries) will "do the right thing", ie
+work with terms for C<not_analyzed> fields and with analyzed text for
+C<analyzed> fields.
+
+=head2 EQUALITY (QUERIES)
+
+=head3 = | text | != | <> | not_text
+
+These operators all generate C<text> queries:
+
+    # Analyzed field 'title' contains the terms 'Perl is GREAT'
+    # (which is analyzed to the terms 'perl','great')
+    { title => 'Perl is GREAT' }
+    { title => { '='  => 'Perl is GREAT' }}
+    { title => { text => 'Perl is GREAT' }}
+
+    # Not_analyzed field 'status' contains the EXACT term 'ACTIVE'
+    { status => 'ACTIVE' }
+    { status => { '='  => 'ACTIVE' }}
+    { status => { text => 'ACTIVE' }}
+
+    # Same as above but with extra parameters:
+    { title => {
+        text => {
+            query          => 'Perl is GREAT',
+            boost          => 2.0,
+            operator       => 'and',
+            analyzer       => 'default',
+            fuzziness      => 0.5,
+            max_expansions => 100,
+            prefix_length  => 2,
+        }
+    }}
+
+Operators C<< <> >>, C<!=> and C<not_text> are synonyms for each other and
+just wrap the operator in a C<not> clause.
+
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html>
+
+=head3 == | phrase | not_phrase
+
+These operators look for a complete phrase.
+
+For instance, given the text
+
+    The quick brown fox jumped over the lazy dog.
+
+    # matches
+    { content => { '==' => 'Quick Brown' }}
+
+    # doesn't match
+    { content => { '==' => 'Brown Quick' }}
+    { content => { '==' => 'Quick Fox'   }}
+
+The C<slop> parameter can be used to allow the phrase to match words in the
+same order, but further apart:
+
+    # with other parameters
+    { content => {
+        phrase => {
+            query    => 'Quick Fox',
+            slop     => 3,
+            analyzer => 'default'
+            boost    => 1,
+    }}
+
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html>
+
+=head3 term | terms | not_term | not_terms
+
+The C<term>/C<terms> operators are provided for completeness.  You
+should almost always use the C<text>/C<=> operator instead.
+
+There are only two use cases:
+
+=over
+
+=item *
+
+To find the exact (ie not analyzed) term 'foo' in an analyzed field:
+
+    { title => { term => 'foo' }}
+
+=item *
+
+To match a list of possible terms, where more than 1 value must match:
+
+    # match 2 or more of these tags
+    { tags => {
+        terms => {
+            value         => ['perl','python','php'],
+            minimum_match => 2,
+            boost         => 1,
+        }
+    }}
+
+The above can also be achieved with the L</"-bool"> operator.
+
+=back
+
+C<term> and C<terms> are synonyms, as are C<not_term> and C<not_terms>.
+
+=head2 EQUALITY (FILTERS)
+
+=head3 = | term | terms | <> | != | not_term | not_terms
+
+These operators result in C<term> or C<terms> filters, which look for
+fields which contain exactly the terms specified:
 
     # Field foo has the term 'bar':
     { foo => 'bar' }
-    { foo => { '='  => 'bar' }}
-    { foo => { '==' => 'bar' }}
-    { foo => { 'in' => 'bar' }}
+    { foo => { '='    => 'bar' }}
+    { foo => { 'term' => 'bar' }}
 
     # Field foo has the term 'bar' or 'baz'
     { foo => ['bar','baz'] }
-    { foo => { '='  => ['bar','baz'] }}
-    { foo => { '==' => ['bar','baz'] }}
-    { foo => { 'in' => ['bar','baz'] }}
+    { foo => { '='     => ['bar','baz'] }}
+    { foo => { 'term'  => ['bar','baz'] }}
+
+C<< <> >> and C<!=> are synonyms:
 
     # Field foo does not contain the term 'bar':
-    { foo => { '!='     => 'bar' }}
-    { foo => { 'not_in' => 'bar' }}
+    { foo => { '!=' => 'bar' }}
+    { foo => { '<>' => 'bar' }}
 
     # Field foo contains neither 'bar' nor 'baz'
-    { foo => { '!='     => ['bar','baz'] }}
-    { foo => { 'not_in' => ['bar','baz'] }}
+    { foo => { '!=' => ['bar','baz'] }}
+    { foo => { '<>' => ['bar','baz'] }}
 
-*** For queries only ***
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/term-filter.html>
+and L<http://www.elasticsearch.org/guide/reference/query-dsl/terms-filter.html>
 
-    # With query params
-    { foo => {
-        '=' => {
-            value => 5,
-            boost => 2
-        }
-    }}
 
-    # With query params
-    { foo => {
-        '=' => {
-            value         => [5,6],
-            boost         => 2,
-            minimum_match => 2,
-        }
-    }}
-
-For term queries see:
-L<http://www.elasticsearch.org/guide/reference/query-dsl/term-query.html>
-and
-L<http://www.elasticsearch.org/guide/reference/query-dsl/terms-query.html>
-
-For term filters see:
-L<http://www.elasticsearch.org/guide/reference/query-dsl/term-filter.html>
-and
-L<http://www.elasticsearch.org/guide/reference/query-dsl/terms-filter.html>
-
-=head2 ^ | prefix | not_prefix
-
-    # Field foo contains a term which begins with 'bar'
-    { foo => { '^'      => 'bar' }}
-    { foo => { 'prefix' => 'bar' }}
-
-    # Field foo contains a term which begins with 'bar' or 'baz'
-    { foo => { '^'      => ['bar','baz'] }}
-    { foo => { 'prefix' => ['bar','baz'] }}
-
-    # Field foo contains a term which begins with neither 'bar' nor 'baz'
-    { foo => { 'not_prefix' => ['bar','baz'] }}
-
-*** For queries only ***
-
-    # With query params
-    { foo => {
-        '^' => {
-            value => 'bar',
-            boost => 2
-        }
-    }}
-
-For the prefix query see
-L<http://www.elasticsearch.org/guide/reference/query-dsl/prefix-query.html>.
-
-For the prefix filter see
-L<http://www.elasticsearch.org/guide/reference/query-dsl/prefix-filter.html>
+=head1 RANGES
 
 =head2 lt | gt | lte | gte | < | <= | >= | > | range | not_range
 
-These operators imply a range query, which can be numeric or alphabetical.
+These operators imply a range query or filter, which can be numeric or
+alphabetical.
 
     # Field foo contains terms between 'alpha' and 'beta'
     { foo => {
@@ -1710,18 +1919,20 @@ These operators imply a range query, which can be numeric or alphabetical.
         'lte'   => '20'
     }}
 
-*** For queries only ***
-
-    # boost a range query
+    # boost a range  *** query only ***
     { foo => {
         range => {
             gt      => 5,
             gte     => 5,
             lt      => 10,
             lte     => 10,
-            boost         => 2.0
+            boost   => 2.0
         }
     }}
+
+For queries, C<< < >> is a synonym for C<lt>, C<< > >> for C<gt> etc.
+
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/range-query.html>
 
 B<Note>: for filter clauses, the C<gt>,C<gte>,C<lt> and C<lte> operators
 imply a C<range> filter, while the C<< < >>, C<< <= >>, C<< > >> and C<< >= >>
@@ -1730,7 +1941,7 @@ operators imply a C<numeric_range> filter.
 B<< This does not mean that you should use the C<numeric_range> version
 for any field which contains numbers! >>
 
-The C<numeric_range> query should be used for numbers/datetimes which
+The C<numeric_range> filter should be used for numbers/datetimes which
 have many distinct values, eg C<ID> or C<last_modified>.  If you have a numeric
 field with few distinct values, eg C<number_of_fingers> then it is better
 to use a C<range> filter.
@@ -1738,67 +1949,14 @@ to use a C<range> filter.
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/range-filter.html>
 and L<http://www.elasticsearch.org/guide/reference/query-dsl/numeric-range-filter.html>.
 
-For queries, both sets of operators produce C<range> queries.
+=head1 MISSING OR NULL VALUES
 
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/range-query.html>
+*** Filter context only ***
 
-
-=head2 * | wildcard | not_wildcard
-
-*** For queries only ***
-
-A C<wildcard> query does a term query, but applies shell globbing to find
-matching terms. In other words C<?> represents any single character,
-while C<*> represents zero or more characters.
-
-    # Field foo matches 'f?ob*'
-    { foo => { '*'        => 'f?ob*' }}
-    { foo => { 'wildcard' => 'f?ob*' }}
-
-    # with a boost:
-    { foo => {
-        '*' => { value => 'f?ob*', boost => 2.0 }
-    }}
-    { foo => {
-        'wildcard' => {
-            value => 'f?ob*',
-            boost => 2.0
-        }
-    }}
-
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/wildcard-query.html>
-
-=head2 fuzzy | not_fuzzy
-
-*** For queries only ***
-
-A C<fuzzy> query searches for terms that are similar to the the provided terms,
-where similarity is based on the Levenshtein (edit distance) algorithm:
-
-    # Field foo is similar to 'fonbaz'
-    { foo => { fuzzy => 'fonbaz' }}
-
-    # With other parameters:
-    { foo => {
-        fuzzy => {
-            value           => 'fonbaz',
-            boost           => 2.0,
-            min_similarity  => 0.2,
-            max_expansions  => 10
-        }
-    }}
-
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/fuzzy-query.html>.
-
-
-=cut
-
-=head1 MISSING / EXISTS
+=head2 -missing | -exists
 
 You can use a C<missing> or C<exists> filter to select only docs where a
 particular field exists and has a value, or is undefined or has no value:
-
-*** For filters only ***
 
     # Field 'foo' has a value:
     { foo     => { exists  => 1 }}
@@ -1814,109 +1972,34 @@ particular field exists and has a value, or is undefined or has no value:
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/missing-filter.html>
 and L<http://www.elasticsearch.org/guide/reference/query-dsl/exists-filter.html>
 
-=head1 FULL TEXT SEARCH QUERIES
+=head1 FULL TEXT SEARCH
 
-There are a range of full text search queries available, with varying
-power, flexibility and complexity.
+*** Query context only ***
 
-"Full text search" means that the text that you search on is analyzed
-into terms before it is used by ElasticSearch.
+For most full text search queries, the C<text> queries are what you
+want.  These analyze the search terms, and look for documents that
+contain one or more of those terms. (See L</"EQUALITY (QUERIES)">).
 
-See </"ELASTICSEARCH CONCEPTS"> for more.
+=head2 qs | query_string | not_qs | not_query_string
 
-*** For queries only ***
+However, there is a more advanced query string syntax
+(see L<http://lucene.apache.org/java/3_2_0/queryparsersyntax.html>)
+which understands search terms like:
 
-=head2 text | not_text
+   perl AND python tag:recent "must have this phrase" -apple
 
-Perform a C<text> query on a field. C<text> queries are very flexible. For
-analyzed text fields, they apply the correct analyzer and do a full text
-search. For non-analyzed fields (numeric, date and non-analyzed strings) it
-performs term queries:
+It is useful for "power" users, but has the disadvantage that, if
+the syntax is incorrect, ES throws an error.  You can use
+L<ElasticSearch::QueryParser> to fix any syntax errors.
 
-    # Non-analyzed field 'status' has the term 'active'
-    { status => {text => 'active' }}
-
-    # Analyzed field 'content' includes the text "Brown Fox"
-    { content => {text => 'Brown Fox' }}
-
-    # Same as above but with extra parameters:
-    { content => {
-        text => {
-            query          => 'Brown Fox',
-            boost          => 2.0,
-            operator       => 'and',
-            analyzer       => 'default',
-            fuzziness      => 0.5,
-            max_expansions => 100,
-            prefix_length  => 2,
-        }
-    }}
-
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html>
-
-=head2 phrase | not_phrase
-
-Performs a C<text_phrase> query.  For instance C<"Brown Fox"> will only match
-if the phrase C<"brown fox"> is present.  Neither C<"fox brown"> nor
-C<"Brown Wiley Fox"> will match.
-
-    { content => { phrase=> "Brown Fox" }}
-
-It accepts a C<slop> factor which will preserve the word order, but allow
-the words themselves to have other words inbetween.  For instance, a C<slop>
-of 3 will allow C<"Brown Wiley Fox"> to match, but C<"fox brown"> still
-won't match.
-
-    { content => {
-        phrase => {
-            query    => "Brown Fox",
-            slop     => 3,
-            analyzer => 'default',
-            boost    => 3.0,
-        }
-    }}
-
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html>
-
-=head2 phrase_prefix | not_phrase_prefix
-
-Performs a C<text_phrase_prefix> query.  This is the sameas the L</"phrase">
-query, but also does a C<prefix> query on the last term, which is useful
-for auto-complete.
-
-    { content => { phrase_prefix => "Brown Fo" }}
-
-With extra options
-
-    { content => {
-        phrase_prefix => {
-            query          => "Brown Fo",
-            slop           => 3,
-            analyzer       => 'default',
-            boost          => 3.0,
-            max_expansions => 100,
-        }
-    }}
-
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html>
-
-=head2 field | not_field | -query_string | -not_query_string
-
-A C<field> query or C<query_string> query does a full text query on the
-provided text, and (unlike C<text>, C<phrase> or C<phrase_prefix> queries)
-exposes all of the power of the Lucene query string syntax (see
-L<http://lucene.apache.org/java/3_2_0/queryparsersyntax.html>).
-
-C<field> queries are used to search on a single field, while C<-query_string>
-queries are used to search on multiple fields.
-
-    # search field foo for "this AND that"
-    { foo => { field => 'this AND that' }}
+    # find docs whose 'title' field matches 'this AND that'
+    { title => { qs           => 'this AND that' }}
+    { title => { query_string => 'this AND that' }}
 
     # With other parameters
-    { foo => {
+    { title => {
         field => {
-            query                        => 'this AND that ',
+            query                        => 'this that ',
             default_operator             => 'AND',
             analyzer                     => 'default',
             allow_leading_wildcard       => 0,
@@ -1931,9 +2014,10 @@ queries are used to search on multiple fields.
         }
     }}
 
-    # multi-field searches:
+The unary form C<-qs> or C<-query_string> can be used when matching
+against multiple fields:
 
-    { -query_string => {
+    { -qs => {
             query                        => 'this AND that ',
             fields                       => ['title','content'],
             default_operator             => 'AND',
@@ -1951,9 +2035,8 @@ queries are used to search on multiple fields.
             tie_breaker                  => 0.7
     }}
 
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/field-query.html>
-and L<http://www.elasticsearch.org/guide/reference/query-dsl/query-string-query.html>
-for more.
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/query-string-query.html>
+
 
 =head2 mlt | not_mlt
 
@@ -2000,6 +2083,7 @@ specified terms.
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/mlt-field-query.html>
 and L<http://www.elasticsearch.org/guide/reference/query-dsl/mlt-query.html>
 
+
 =head2 flt | not_flt
 
 An C<flt> or C<fuzzy_like_this> query fuzzifies all specified terms, then
@@ -2035,84 +2119,146 @@ of C<fuzzy> with C<more_like_this>.
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/flt-field-query.html>
 and L<http://www.elasticsearch.org/guide/reference/query-dsl/flt-query.html>
 
-=head1 NESTING AND COMBINING
+=head1 PREFIX
 
-These constructs allow you to combine multiple queries and filters.
+=head2 PREFIX (QUERIES)
 
-=head2 -filter
+=head3 ^ | phrase_prefix | not_phrase_prefix
 
-This allows you to combine a query with one or more filters:
+These operators use the C<text_phrase_prefix> query.
 
-*** For queries only ***
+For C<analyzed> fields, it analyzes the search terms, and does a
+C<text_phrase> query, with a C<prefix> query on the last term.
+Think "auto-complete".
 
-    # query field content for 'brown cow', and filter documents
-    # where status is 'active' and tags contains the term 'perl'
-    {
-        content => { text => 'brown cow' },
-        -filter => {
-            status => 'active',
-            tags   => 'perl'
+For C<not_analyzed> fields, this behaves the same as the term-based
+C<prefix> query.
+
+For instance, given the phrase
+C<The quick brown fox jumped over the lazy dog>:
+
+    # matches
+    { content => { '^'             => 'qui'}}
+    { content => { '^'             => 'quick br'}}
+    { content => { 'phrase_prefix' => 'quick brown f'}}
+
+    # doesn't match
+    { content => { '^'             => 'quick fo' }}
+    { content => { 'phrase_prefix' => 'fox brow'}}
+
+With extra options
+
+    { content => {
+        phrase_prefix => {
+            query          => "Brown Fo",
+            slop           => 3,
+            analyzer       => 'default',
+            boost          => 3.0,
+            max_expansions => 100,
         }
-    }
+    }}
 
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/filtered-query.html>
+See http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html
 
-=head2 -query
+=head3 prefix | not_prefix
 
-This allows you to combine a filter with one or more queries:
+The C<prefix> query is a term-based query - no analysis takes place,
+even on analyzed fields.  Generally you should use C<^> instead.
 
-*** For filters only ***
+    # Field 'lang' contains terms beginning with 'p'
+    { lang => { prefix => 'p' }}
 
-    # query field content for 'brown cow', and filter documents
-    # where status is 'active', tags contains the term 'perl'
-    # and a text query on field title contains 'important'
-    {
-        content => { text => 'brown cow' },
-        -filter => {
-            status => 'active',
-            tags   => 'perl',
-            -query => {
-                title => { text => 'important' }
-            }
+    # With extra options
+    { lang => {
+        'prefix' => {
+            value => 'p',
+            boost => 2
         }
-    }
+    }}
 
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/query-filter.html>
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/prefix-query.html>.
 
-=head2 -and | -or | -not
+=head2 PREFIX (FILTERS)
 
-These operators allow you apply C<and>, C<or> and C<not> logic to nested
-queries or filters.
 
-    # Field foo has both terms 'bar' and 'baz'
-    { -and => [
-            foo => 'bar',
-            foo => 'baz'
-    ]}
+=head3 ^ | prefix | not_prefix
 
-    # Field
-    { -or => [
-        { name => { text => 'John Smith' }},
-        {
-            -missing => 'name',
-            name     => { text => 'John Smith' }
+    # Field foo contains a term which begins with 'bar'
+    { foo => { '^'      => 'bar' }}
+    { foo => { 'prefix' => 'bar' }}
+
+    # Field foo contains a term which begins with 'bar' or 'baz'
+    { foo => { '^'      => ['bar','baz'] }}
+    { foo => { 'prefix' => ['bar','baz'] }}
+
+    # Field foo contains a term which begins with neither 'bar' nor 'baz'
+    { foo => { 'not_prefix' => ['bar','baz'] }}
+
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/prefix-filter.html>
+
+
+=head1 WILDCARD AND FUZZY QUERIES
+
+*** Query context only ***
+
+=head2 * | wildcard | not_wildcard
+
+A C<wildcard> is a term-based query (no analysis is applied), which
+does shell globbing to find matching terms. In other words C<?>
+represents any single character, while C<*> represents zero or more
+characters.
+
+    # Field foo matches 'f?ob*'
+    { foo => { '*'        => 'f?ob*' }}
+    { foo => { 'wildcard' => 'f?ob*' }}
+
+    # with a boost:
+    { foo => {
+        '*' => { value => 'f?ob*', boost => 2.0 }
+    }}
+    { foo => {
+        'wildcard' => {
+            value => 'f?ob*',
+            boost => 2.0
         }
-    ]}
+    }}
 
-The C<-and>, C<-or> and C<-not> constructs emit C<and>, C<or> and C<not> filters
-for filters, and C<bool> queries for queries.
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/wildcard-query.html>
 
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/bool-query.html>,
-C<http://www.elasticsearch.org/guide/reference/query-dsl/and-filter.html>,
-C<http://www.elasticsearch.org/guide/reference/query-dsl/or-filter.html>
-and C<http://www.elasticsearch.org/guide/reference/query-dsl/not-filter.html>.
+=head2 fuzzy | not_fuzzy
+
+A C<fuzzy> query is a term-based query (ie no analysis is done)
+which looks for terms that are similar to the the provided terms,
+where similarity is based on the Levenshtein (edit distance) algorithm:
+
+    # Field foo is similar to 'fonbaz'
+    { foo => { fuzzy => 'fonbaz' }}
+
+    # With other parameters:
+    { foo => {
+        fuzzy => {
+            value           => 'fonbaz',
+            boost           => 2.0,
+            min_similarity  => 0.2,
+            max_expansions  => 10
+        }
+    }}
+
+Normally, you should rather use either the L</"EQUALITY"> queries with
+the C<fuzziness> parameter, or the L</"flt"> queries.
+
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/fuzzy-query.html>.
+
+=head1 COMBINING QUERIES
+
+*** Query context only ***
+
+These constructs allow you to combine multiple queries.
 
 =head2 -dis_max | -dismax
 
 While a C<bool> query adds together the scores of the nested queries, a
 C<dis_max> query uses the highest score of any matching queries.
-
-*** For queries only ***
 
     # Run the two queries and use the best score
     { -dismax => [
@@ -2154,7 +2300,7 @@ you can do the following:
        }
     }
 
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/bool-filter.html>
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/bool-query.html>
 
 =head2 -boosting
 
@@ -2168,74 +2314,7 @@ but the results are "less relevant".
         negative_boost => 0.2
     }}
 
-L<http://www.elasticsearch.org/guide/reference/query-dsl/boosting-query.html>
-
-=head1 GEOLOCATION FILTERS
-
-Geo-location filters work with fields that have the type C<geo_point>.
-See L<http://www.elasticsearch.org/guide/reference/mapping/geo-point-type.html>)
-for valid formats for the C<$location> field.
-
-*** For filters only ***
-
-=head2 geo_distance | not_geo_distance
-
-Return docs with C<$distance> of C<$location>:
-
-    # Field 'point' is within 100km of London
-    { point => {
-        geo_distance => {
-            distance => '100km',
-            location => {
-                lat  => 51.50853,
-                lon  => -0.12574
-            }
-        }
-    }}
-
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/geo-distance-filter.html>
-
-=head2 geo_distance_range | not_geo_distance_range
-
-This is like the range filter, and accepts the same parameters:
-
-    # Field 'point' is 100-200km from London
-    { point => {
-        geo_distance_range => {
-            gte      => '100km',
-            lte      => '200km',
-            location => {
-                lat  => 51.50853,
-                lon  => -0.12574
-            }
-        }
-    }}
-
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/geo-distance-range-filter.html>
-
-=head2 geo_bounding_box | not_geo_bounding_box
-
-This returns documents whose location lies within the specified
-rectangle:
-
-    { point => {
-        geo_bounding_box => {
-            top_left     => [40.73,-74.1],
-            bottom_right => [40.71,-73.99],
-        }
-    }}
-
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/geo-bounding-box-filter.html>
-
-=head2 geo_polygon | not_geo_polygon
-
-This finds documents whose location lies within the specified polygon:
-
-    { point => {
-        geo_polygon => [[40,-70],[30,-80],[20,-90]]
-    }}
-
-L<http://www.elasticsearch.org/guide/reference/query-dsl/geo-polygon-filter.html>
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/boosting-query.html>
 
 =head1 SCRIPTING
 
@@ -2248,10 +2327,10 @@ more on scripting.
 
 =head2 -custom_score
 
-The C<-custom_score> query allows you to customise the C<_score> or relevance
-(and thus the order) of returned docs.
+*** Query context only ***
 
-*** For queries only ***
+The C<-custom_score> query allows you to customise the C<_score> or relevance
+(and thus the order) of docs returned from a query.
 
     {
         -custom_score => {
@@ -2269,10 +2348,10 @@ See L<http://www.elasticsearch.org/guide/reference/query-dsl/custom-score-query.
 
 =head2 -script
 
+*** Filter context only ***
+
 The C<-script> filter allows you to use a script as a filter. Return a true
 value to indicate that the filter matches.
-
-*** For filters only ***
 
     # Filter docs whose field 'foo' is greater than 5
     { -script => "doc['foo'].value > 5 " }
@@ -2287,47 +2366,6 @@ value to indicate that the filter matches.
     }
 
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/script-filter.html>
-
-=head1 TYPE/IDS
-
-The C<_type> and C<_id> fields are not indexed by default, and thus aren't
-available for normal queries or filters.
-
-=head2 -ids
-
-Returns docs with the matching C<_id> or C<_id>/C<_type> combination:
-
-    # doc with ID 123
-    { -ids => 123 }
-
-    # docs with IDs 123 or 124
-    { -ids => [123,124] }
-
-    # docs of types 'blog' or 'comment' with IDs 123 or 124
-    {
-        -ids => {
-            type    => ['blog','comment'],
-            values  => [123,124]
-
-        }
-    }
-
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/ids-query.html>
-and L<http://www.elasticsearch.org/guide/reference/query-dsl/ids-filter.html>
-
-=head2 -type
-
-Filters docs with matching C<_type> fields:
-
-*** For filters only ***
-
-    # Filter docs of type 'comment'
-    { -type => 'comment' }
-
-    # Filter docs of type 'comment' or 'blog'
-    { -type => ['blog','comment' ]}
-
-See L<http://www.elasticsearch.org/guide/reference/query-dsl/type-filter.html>
 
 =head1 PARENT/CHILD
 
@@ -2351,14 +2389,14 @@ Find parent documents that have child documents which match a query.
     }
 
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/has-child-query.html>
-and L<http://www.elasticsearch.org/guide/reference/query-dsl/has-child-filter.html>.
+and See L<http://www.elasticsearch.org/guide/reference/query-dsl/has-child-filter.html>.
 
 =head2 top_children
 
+*** Query context only ***
+
 The C<top_children> query runs a query against the child docs, and aggregates
 the scores to find the parent docs whose children best match.
-
-*** For queries only ***
 
     {
         -top_children => {
@@ -2373,11 +2411,74 @@ the scores to find the parent docs whose children best match.
 
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/top-children-query.html>
 
+=head1 TYPE/ID
+
+The C<_id> field is not indexed by default, and thus isn't
+available for normal queries or filters.
+
+=head2 -ids
+
+Returns docs with the matching C<_id> or C<_type>/C<_id> combination:
+
+    # doc with ID 123
+    { -ids => 123 }
+
+    # docs with IDs 123 or 124
+    { -ids => [123,124] }
+
+    # docs of types 'blog' or 'comment' with IDs 123 or 124
+    {
+        -ids => {
+            type    => ['blog','comment'],
+            values  => [123,124]
+
+        }
+    }
+
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/ids-query.html>
+abd L<http://www.elasticsearch.org/guide/reference/query-dsl/ids-filter.html>
+
+=head2 -type
+
+*** Filter context only ***
+
+Filters docs with matching C<_type> fields.
+
+While the C<_type> field is indexed by default, ElasticSearch provides the
+C<type> filter which will work even if indexing of the C<_type> field is
+disabled.
+
+    # Filter docs of type 'comment'
+    { -type => 'comment' }
+
+    # Filter docs of type 'comment' or 'blog'
+    { -type => ['blog','comment' ]}
+
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/type-filter.html>
+
+
+=head1 LIMIT
+
+*** Filter context only ***
+
+The C<limit> filter limits the number of documents (per shard) to execute on:
+
+    {
+        name    => { text => 'Joe Bloggs },
+        -filter => { -limit => 100       }
+    }
+
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/limit-filter.html>
+
 =head1 CACHING FILTERS
 
 Part of the performance boost that you get when using filters comes from the
 ability to cache the results of those filters.  However, it doesn't make
 sense to cache all filters by default.
+
+=head2 -cache | -nocache
+
+*** Filter context only ***
 
 If you would like to override the default caching, then you can use
 C<-cache> or C<-nocache>:
@@ -2402,9 +2503,11 @@ See L<http://www.elasticsearch.org/guide/reference/query-dsl/> for more
 details about what is cached by default and what is not.
 
 
+=cut
+
 =head1 ELASTICSEARCH CONCEPTS
 
-=head2 Filters vs Queries
+=head2 FILTERS VS QUERIES
 
 ElasticSearch supports filters and queries:
 
@@ -2452,7 +2555,7 @@ don't contribute to the C<_score> in any way.
 
 Typically, most of your clauses will be filters, and just a few will be queries.
 
-=head2 Terms vs Text
+=head2 TERMS VS TEXT
 
 All data is stored in ElasticSearch as a C<term>, which is an exact value.
 The term C<"Foo"> is not the same as C<"foo">.
@@ -2491,10 +2594,36 @@ and the query won't succeed.
 
 For instance, a C<term> query for C<GREATEST> wouldn't work, but C<greatest>
 would work.  However, a C<text> query for C<GREATEST> would work, because
-the search text would be analyzed into the correct terms.
+the search text would be analyzed to produce the same terms that are stored
+in the index.
 
 See L<http://www.elasticsearch.org/guide/reference/index-modules/analysis/>
 for the list of supported analyzers.
+
+=head2 C<text> QUERIES
+
+ElasticSearch has a family of DWIM queries called C<text> queries.
+
+Their action depends upon how the field has been defined. If a field is
+C<analyzed> (the default for string fields) then the C<text> queries analyze
+the search terms before doing the search:
+
+    # Convert "Perl is GREAT" to the terms 'perl','great' and search
+    # the 'content' field for those terms
+
+    { text: { content: "Perl is GREAT" }}
+
+If a field is C<not_analyzed>, then it treats the search terms as a single
+term:
+
+    # Find all docs where the 'status' field contains EXACTLY the term 'ACTIVE'
+    { text: { status: "ACTIVE" }}
+
+Filters, on the other hand, don't have C<text> queries - filters operate on
+simple terms instead.
+
+See L<http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html>
+for more about text queries.
 
 =cut
 
@@ -2504,8 +2633,7 @@ Clinton Gormley, C<< <drtech at cpan.org> >>
 
 =head1 BUGS
 
-This is an alpha module, so there will be bugs, and the API is likely to
-change in the future.
+This is a beta module, so the API may well change in the future.
 
 If you have any suggestions for improvements, or find any bugs, please report
 them to L<https://github.com/clintongormley/ElasticSearch-SearchBuilder/issues>.
@@ -2534,7 +2662,8 @@ This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
 by the Free Software Foundation; or the Artistic License.
 
-See http://dev.perl.org/licenses/ for more information.
+See L<http://dev.perl.org/licenses/> for more information.
 
 
 =cut
+
