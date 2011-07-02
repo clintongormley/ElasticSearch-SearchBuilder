@@ -11,6 +11,31 @@ use ElasticSearch::SearchBuilder;
 my $a = ElasticSearch::SearchBuilder->new;
 
 test_queries(
+    "UNARY OPERATOR: all",
+
+    "all: 0",
+    { -all      => 0 },
+    { match_all => {} },
+
+    "all: 1",
+    { -all      => 1 },
+    { match_all => {} },
+
+    "all: []",
+    { -all      => [] },
+    { match_all => {} },
+
+    "all: {}",
+    { -all      => {} },
+    { match_all => {} },
+
+    "all: {kv}",
+    { -all      => { boost => 1, norms_field => 'foo' } },
+    { match_all => { boost => 1, norms_field => 'foo' } }
+
+);
+
+test_queries(
     'UNARY OPERATOR: ids, not_ids',
     'IDS: 1',
     { -ids => 1 },
@@ -695,7 +720,9 @@ test_queries(
 
     'NOT_FILTER: {}',
     { -not_filter => { k => 'v' } },
-    { constant_score => { filter => { not => { term => { k => 'v' } } } } },
+    {   constant_score =>
+            { filter => { not => { filter => { term => { k => 'v' } } } } }
+    },
 
     'QUERY/FILTER',
     { k => 'v', -filter => { k => 'v' } },

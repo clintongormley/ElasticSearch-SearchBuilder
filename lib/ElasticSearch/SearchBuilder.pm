@@ -393,6 +393,7 @@ sub _merge_range_clauses {
 #======================================================================
 
 #===================================
+sub _query_unary_all { shift->_unary_all( 'query', shift ) }
 sub _query_unary_or  { shift->_unary_and( 'query', shift, 'or' ) }
 sub _query_unary_and { shift->_unary_and( 'query', shift, 'and' ) }
 sub _query_unary_not { shift->_unary_not( 'query', shift, ) }
@@ -401,12 +402,30 @@ sub _query_unary_has_child { shift->_unary_child( 'query', shift ) }
 #===================================
 
 #===================================
+sub _filter_unary_all { shift->_unary_all( 'filter', shift ) }
 sub _filter_unary_or  { shift->_unary_and( 'filter', shift, 'or' ) }
 sub _filter_unary_and { shift->_unary_and( 'filter', shift, 'and' ) }
 sub _filter_unary_not { shift->_unary_not( 'filter', shift, ) }
 sub _filter_unary_ids { shift->_unary_ids( 'filter', shift ) }
 sub _filter_unary_has_child { shift->_unary_child( 'filter', shift ) }
 #===================================
+
+#===================================
+sub _unary_all {
+#===================================
+    my ( $self, $type, $v ) = @_;
+    $v = {} unless $v and ref $v eq 'HASH';
+    $self->_SWITCH_refkind(
+        "Unary -all",
+        $v,
+        {   HASHREF => sub {
+                my $p = $self->_hash_params( 'all', $v, [],
+                    $type eq 'query' ? [ 'boost', 'norms_field' ] : [] );
+                return { match_all => $p };
+            },
+        }
+    );
+}
 
 #===================================
 sub _unary_and {
@@ -1762,6 +1781,27 @@ to distinguish them from field names.
 Unary operators may also be prefixed with C<not_> to negate their meaning.
 
 =cut
+
+=head1 MATCH ALL
+
+=head2 -all
+
+The C<-all> operator matches all documents:
+
+    # match all
+    { -all => 1  }
+    { -all => 0  }
+    { -all => {} }
+
+In query context, the C<match_all> query usually scores all docs as
+1 (ie having the same relevance). By specifying a C<norms_field>, the
+relevance can be read from that field (at the cost of a slower execution time):
+
+    # Query context only
+    { -all =>{
+        boost       => 1,
+        norms_field => 'doc_boost'
+    }}
 
 =head1 EQUALITY
 

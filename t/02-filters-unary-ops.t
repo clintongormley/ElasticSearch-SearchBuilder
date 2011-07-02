@@ -11,6 +11,32 @@ use ElasticSearch::SearchBuilder;
 my $a = ElasticSearch::SearchBuilder->new;
 
 test_filters(
+    "UNARY OPERATOR: all",
+
+    "all: 0",
+    {-all=> 0},
+    {match_all=>{}},
+
+
+    "all: 1",
+    {-all=> 1},
+    {match_all=>{}},
+
+    "all: []",
+    {-all=> []},
+    {match_all=>{}},
+
+    "all: {}",
+    {-all=> {}},
+    {match_all=>{}},
+
+    "all: {kv}",
+    {-all=> {boost=>1}},
+    qr/Unknown param/
+
+);
+
+test_filters(
     "UNARY OPERATORS: missing/exists",
 
     "exists: k",
