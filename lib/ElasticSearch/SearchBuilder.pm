@@ -1814,7 +1814,7 @@ C<analyzed> fields.
 
 =head2 EQUALITY (QUERIES)
 
-=head3 = | text | != | <> | not_text
+=head3 = | -text | != | <> | -not_text
 
 These operators all generate C<text> queries:
 
@@ -1847,7 +1847,7 @@ just wrap the operator in a C<not> clause.
 
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html>
 
-=head3 == | phrase | not_phrase
+=head3 == | -phrase | -not_phrase
 
 These operators look for a complete phrase.
 
@@ -1876,7 +1876,7 @@ same order, but further apart:
 
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html>
 
-=head3 term | terms | not_term | not_terms
+=head3 -term | -terms | -not_term | -not_terms
 
 The C<term>/C<terms> operators are provided for completeness.  You
 should almost always use the C<text>/C<=> operator instead.
@@ -1912,7 +1912,7 @@ C<term> and C<terms> are synonyms, as are C<not_term> and C<not_terms>.
 
 =head2 EQUALITY (FILTERS)
 
-=head3 = | term | terms | <> | != | not_term | not_terms
+=head3 = | -term | -terms | <> | != | -not_term | -not_terms
 
 These operators result in C<term> or C<terms> filters, which look for
 fields which contain exactly the terms specified:
@@ -1943,7 +1943,7 @@ and L<http://www.elasticsearch.org/guide/reference/query-dsl/terms-filter.html>
 
 =head1 RANGES
 
-=head2 lt | gt | lte | gte | < | <= | >= | > | range | not_range
+=head2 lt | gt | lte | gte | < | <= | >= | > | -range | -not_range
 
 These operators imply a range query or filter, which can be numeric or
 alphabetical.
@@ -2021,7 +2021,7 @@ For most full text search queries, the C<text> queries are what you
 want.  These analyze the search terms, and look for documents that
 contain one or more of those terms. (See L</"EQUALITY (QUERIES)">).
 
-=head2 qs | query_string | not_qs | not_query_string
+=head2 -qs | -query_string | -not_qs | -not_query_string
 
 However, there is a more advanced query string syntax
 (see L<http://lucene.apache.org/java/3_2_0/queryparsersyntax.html>)
@@ -2079,7 +2079,7 @@ against multiple fields:
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/query-string-query.html>
 
 
-=head2 mlt | not_mlt
+=head2 -mlt | -not_mlt
 
 An C<mlt> or C<more_like_this> query finds documents that are "like" the
 specified text, where "like" means that it contains some or all of the
@@ -2127,7 +2127,7 @@ See L<http://www.elasticsearch.org/guide/reference/query-dsl/mlt-field-query.htm
 and L<http://www.elasticsearch.org/guide/reference/query-dsl/mlt-query.html>
 
 
-=head2 flt | not_flt
+=head2 -flt | -not_flt
 
 An C<flt> or C<fuzzy_like_this> query fuzzifies all specified terms, then
 picks the best C<max_query_terms> differentiating terms. It is a combination
@@ -2168,7 +2168,7 @@ and L<http://www.elasticsearch.org/guide/reference/query-dsl/flt-query.html>
 
 =head2 PREFIX (QUERIES)
 
-=head3 ^ | phrase_prefix | not_phrase_prefix
+=head3 ^ | -phrase_prefix | -not_phrase_prefix
 
 These operators use the C<text_phrase_prefix> query.
 
@@ -2205,7 +2205,7 @@ With extra options
 
 See http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html
 
-=head3 prefix | not_prefix
+=head3 -prefix | -not_prefix
 
 The C<prefix> query is a term-based query - no analysis takes place,
 even on analyzed fields.  Generally you should use C<^> instead.
@@ -2226,7 +2226,7 @@ See L<http://www.elasticsearch.org/guide/reference/query-dsl/prefix-query.html>.
 =head2 PREFIX (FILTERS)
 
 
-=head3 ^ | prefix | not_prefix
+=head3 ^ | -prefix | -not_prefix
 
     # Field foo contains a term which begins with 'bar'
     { foo => { '^'      => 'bar' }}
@@ -2246,7 +2246,7 @@ See L<http://www.elasticsearch.org/guide/reference/query-dsl/prefix-filter.html>
 
 *** Query context only ***
 
-=head2 * | wildcard | not_wildcard
+=head2 * | -wildcard | -not_wildcard
 
 A C<wildcard> is a term-based query (no analysis is applied), which
 does shell globbing to find matching terms. In other words C<?>
@@ -2270,7 +2270,7 @@ characters.
 
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/wildcard-query.html>
 
-=head2 fuzzy | not_fuzzy
+=head2 -fuzzy | -not_fuzzy
 
 A C<fuzzy> query is a term-based query (ie no analysis is done)
 which looks for terms that are similar to the the provided terms,
@@ -2420,7 +2420,7 @@ relationships.
 See L<http://www.elasticsearch.org/guide/reference/mapping/parent-field.html>
 for more.
 
-=head2 has_child | not_has_child
+=head2 -has_child | -not_has_child
 
 Find parent documents that have child documents which match a query.
 
@@ -2437,7 +2437,7 @@ Find parent documents that have child documents which match a query.
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/has-child-query.html>
 and See L<http://www.elasticsearch.org/guide/reference/query-dsl/has-child-filter.html>.
 
-=head2 top_children
+=head2 -top_children
 
 *** Query context only ***
 
