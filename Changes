@@ -1,4 +1,11 @@
 Revision history for ElasticSearch::SearchBuilder
+
+0.04    2011-07-02
+        Added the -all operator
+        Changed the -not filter to work with ES < 0.17
+        Added the 'analyzer' param to flt and mlt
+        Added the 'boost' param to has_child queries
+
 0.03    2011-06-30
 
         First public release for ElasticSearch::SearchBuilder

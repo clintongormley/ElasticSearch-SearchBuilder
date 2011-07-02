@@ -35,7 +35,7 @@
    "provides" : {
       "ElasticSearch::SearchBuilder" : {
          "file" : "lib/ElasticSearch/SearchBuilder.pm",
-         "version" : "0.03"
+         "version" : "0.04"
       }
    },
    "release_status" : "stable",
@@ -50,5 +50,5 @@
          "url" : "http://github.com/clintongormley/ElasticSearch-SearchBuilder/"
       }
    },
-   "version" : "0.03"
+   "version" : "0.04"
 }
