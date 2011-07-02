@@ -562,7 +562,7 @@ sub _query_unary_flt {
                 my $p = $self->_hash_params(
                     'flt', $v,
                     ['like_text'],
-                    [   qw(boost fields ignore_tf max_query_terms
+                    [   qw(analyzer boost fields ignore_tf max_query_terms
                             min_similarity prefix_length )
                     ]
                 );
@@ -584,7 +584,7 @@ sub _query_unary_mlt {
                 my $p = $self->_hash_params(
                     'mlt', $v,
                     ['like_text'],
-                    [   qw(boost boost_terms fields
+                    [   qw(analyzer boost boost_terms fields
                             max_doc_freq max_query_terms max_word_len
                             min_doc_freq min_term_freq min_word_len
                             percent_terms_to_match stop_words )
@@ -940,7 +940,7 @@ sub _query_field_mlt {
                 my $p = $self->_hash_params(
                     $op, $val,
                     ['like_text'],
-                    [   qw( boost boost_terms max_doc_freq
+                    [   qw( analyzer boost boost_terms max_doc_freq
                             max_query_terms max_word_len min_doc_freq
                             min_term_freq min_word_len
                             percent_terms_to_match stop_words )
@@ -972,7 +972,7 @@ sub _query_field_flt {
                 my $p = $self->_hash_params(
                     $op, $val,
                     ['like_text'],
-                    [   qw( boost ignore_tf max_query_terms
+                    [   qw( analyzer boost ignore_tf max_query_terms
                             min_similarity prefix_length)
                     ]
                 );
@@ -2062,6 +2062,7 @@ specified terms.
             max_word_len            => 20,
             boost_terms             => 2,
             boost                   => 2.0,
+            analyzer                => 'default'
         }
     }}
 
@@ -2079,6 +2080,7 @@ specified terms.
         max_word_len            => 20,
         boost_terms             => 2,
         boost                   => 2.0,
+        analyzer                => 'default'
     }}
 
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/mlt-field-query.html>
@@ -2103,6 +2105,7 @@ of C<fuzzy> with C<more_like_this>.
             min_similarity  => 0.5,
             prefix_length   => 3,
             boost           => 2.0,
+            analyzer        => 'default'
         }
     }}
 
@@ -2115,6 +2118,7 @@ of C<fuzzy> with C<more_like_this>.
         min_similarity  => 0.5,
         prefix_length   => 3,
         boost           => 2.0,
+        analyzer        => 'default'
     }}
 
 See L<http://www.elasticsearch.org/guide/reference/query-dsl/flt-field-query.html>

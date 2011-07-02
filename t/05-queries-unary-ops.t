@@ -74,7 +74,8 @@ test_queries(
             ignore_tf       => 0,
             max_query_terms => 100,
             min_similarity  => 0.5,
-            prefix_length   => 2
+            prefix_length   => 2,
+            analyzer        => 'default',
         }
     },
     {   flt => {
@@ -84,7 +85,8 @@ test_queries(
             ignore_tf       => 0,
             max_query_terms => 100,
             min_similarity  => 0.5,
-            prefix_length   => 2
+            prefix_length   => 2,
+            analyzer        => 'default',
         }
     },
 
@@ -108,7 +110,8 @@ test_queries(
             ignore_tf       => 0,
             max_query_terms => 100,
             min_similarity  => 0.5,
-            prefix_length   => 2
+            prefix_length   => 2,
+            analyzer        => 'default',
         }
     },
     {   bool => {
@@ -120,7 +123,8 @@ test_queries(
                         ignore_tf       => 0,
                         max_query_terms => 100,
                         min_similarity  => 0.5,
-                        prefix_length   => 2
+                        prefix_length   => 2,
+                        analyzer        => 'default',
                     }
                 }
             ]
@@ -155,7 +159,8 @@ test_queries(
             min_term_freq          => 1,
             min_word_len           => 1,
             percent_terms_to_match => 0.3,
-            stop_words             => [ 'foo', 'bar' ]
+            stop_words             => [ 'foo', 'bar' ],
+            analyzer               => 'default',
         }
     },
     {   mlt => {
@@ -170,7 +175,8 @@ test_queries(
             min_term_freq          => 1,
             min_word_len           => 1,
             percent_terms_to_match => 0.3,
-            stop_words             => [ 'foo', 'bar' ]
+            stop_words             => [ 'foo', 'bar' ],
+            analyzer               => 'default',
         }
     },
 
@@ -199,7 +205,8 @@ test_queries(
             min_term_freq          => 1,
             min_word_len           => 1,
             percent_terms_to_match => 0.3,
-            stop_words             => [ 'foo', 'bar' ]
+            stop_words             => [ 'foo', 'bar' ],
+            analyzer               => 'default',
         }
     },
     {   bool => {
@@ -217,7 +224,8 @@ test_queries(
                         min_term_freq          => 1,
                         min_word_len           => 1,
                         percent_terms_to_match => 0.3,
-                        stop_words             => [ 'foo', 'bar' ]
+                        stop_words             => [ 'foo', 'bar' ],
+                        analyzer               => 'default',
                     }
                 }
             ]

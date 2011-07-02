@@ -1057,7 +1057,8 @@ for my $op (qw(flt)) {
                     boost          => 1,
                     min_similarity => 0.5,
                     ignore_tf      => 1,
-                    prefix_length  => 2
+                    prefix_length  => 2,
+                    analyzer       => 'default',
                 }
             }
         },
@@ -1067,7 +1068,8 @@ for my $op (qw(flt)) {
                     boost          => 1,
                     min_similarity => 0.5,
                     ignore_tf      => 1,
-                    prefix_length  => 2
+                    prefix_length  => 2,
+                    analyzer       => 'default',
                 }
             }
         },
@@ -1125,7 +1127,8 @@ for my $op (qw(not_flt)) {
                     boost          => 1,
                     min_similarity => 0.5,
                     ignore_tf      => 1,
-                    prefix_length  => 2
+                    prefix_length  => 2,
+                    analyzer       => 'default',
                 }
             }
         },
@@ -1137,7 +1140,8 @@ for my $op (qw(not_flt)) {
                                 boost          => 1,
                                 min_similarity => 0.5,
                                 ignore_tf      => 1,
-                                prefix_length  => 2
+                                prefix_length  => 2,
+                                analyzer       => 'default',
                             }
                         }
                     }
@@ -1198,7 +1202,8 @@ for my $op (qw(mlt)) {
                     min_term_freq          => 1,
                     min_word_len           => 1,
                     percent_terms_to_match => 0.3,
-                    stop_words             => [ 'foo', 'bar' ]
+                    stop_words             => [ 'foo', 'bar' ],
+                    analyzer               => 'default',
                 }
             }
         },
@@ -1215,7 +1220,8 @@ for my $op (qw(mlt)) {
                     min_term_freq          => 1,
                     min_word_len           => 1,
                     percent_terms_to_match => 0.3,
-                    stop_words             => [ 'foo', 'bar' ]
+                    stop_words             => [ 'foo', 'bar' ],
+                    analyzer               => 'default',
                 }
             }
         },
@@ -1279,7 +1285,8 @@ for my $op (qw(not_mlt)) {
                     min_term_freq          => 1,
                     min_word_len           => 1,
                     percent_terms_to_match => 0.3,
-                    stop_words             => [ 'foo', 'bar' ]
+                    stop_words             => [ 'foo', 'bar' ],
+                    analyzer               => 'default',
                 }
             }
         },
@@ -1297,7 +1304,8 @@ for my $op (qw(not_mlt)) {
                                 min_term_freq          => 1,
                                 min_word_len           => 1,
                                 percent_terms_to_match => 0.3,
-                                stop_words             => [ 'foo', 'bar' ]
+                                stop_words             => [ 'foo', 'bar' ],
+                                analyzer               => 'default',
                             }
                         }
                     }
