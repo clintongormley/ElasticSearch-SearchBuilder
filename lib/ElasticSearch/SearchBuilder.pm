@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Scalar::Util ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 my %SPECIAL_OPS = (
     query => {
@@ -278,7 +278,7 @@ sub _negate_clause {
 #===================================
     my ( $self, $type, $clause ) = @_;
     return $type eq 'filter'
-        ? { not => $clause }
+        ? { not => { filter => $clause } }
         : $self->_merge_bool_queries( 'must_not', [$clause] );
 }
 

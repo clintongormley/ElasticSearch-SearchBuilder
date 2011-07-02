@@ -120,42 +120,46 @@ for my $op (qw(!= <> not_term not_terms)) {
 
         "K: $op V",
         { k => { $op => 'v' } },
-        { not => { term => { k => 'v' } } },
+        { not => { filter => { term => { k => 'v' } } } },
 
         "K: $op UNDEF",
         { k => { $op => undef } },
-        { not => { missing => { field => 'k' } } },
+        { not => { filter => { missing => { field => 'k' } } } },
 
         "K: $op [V]",
         { k => { $op => ['v'] } },
-        { not => { term => { k => 'v' } } },
+        { not => { filter => { term => { k => 'v' } } } },
 
         "K: $op [V,V]",
         { k => { $op => [ 'v', 'v' ] } },
-        { not => { terms => { k => [ 'v', 'v' ] } } },
+        { not => { filter => { terms => { k => [ 'v', 'v' ] } } } },
 
         "K: $op [UNDEF]",
         { k => { $op => [undef] } },
-        { not => { missing => { field => 'k' } } },
+        { not => { filter => { missing => { field => 'k' } } } },
 
         "K: $op [V,UNDEF]",
         { k => { $op => [ 'v', undef ] } },
         {   not => {
-                or => [
-                    { term    => { k     => 'v' } },
-                    { missing => { field => 'k' } },
-                ]
+                filter => {
+                    or => [
+                        { term    => { k     => 'v' } },
+                        { missing => { field => 'k' } },
+                    ]
+                }
             }
         },
 
         'K: = [-and,V,UNDEF]',
         { k => { $op => [ '-and', 'v', undef ] } },
         {   not => {
-                or => [
-                    { term    => { k     => '-and' } },
-                    { term    => { k     => 'v' } },
-                    { missing => { field => 'k' } },
-                ]
+                filter => {
+                    or => [
+                        { term    => { k     => '-and' } },
+                        { term    => { k     => 'v' } },
+                        { missing => { field => 'k' } },
+                    ]
+                }
             }
         },
     );
@@ -200,7 +204,7 @@ test_filters(
 
     "K: not_prefix V",
     { k   => { not_prefix => 'v' } },
-    { not => { prefix     => { k => 'v' } } },
+    { not => { filter     => { prefix => { k => 'v' } } } },
 
     "K: not_prefix UNDEF",
     { k => { not_prefix => undef } },
@@ -208,12 +212,16 @@ test_filters(
 
     "K: not_prefix [V]",
     { k   => { not_prefix => ['v'] } },
-    { not => { prefix     => { k => 'v' } } },
+    { not => { filter     => { prefix => { k => 'v' } } } },
 
     "K: not_prefix [V,V]",
     { k => { not_prefix => [ 'v', 'v' ] } },
     {   not => {
-            or => [ { prefix => { k => 'v' } }, { prefix => { k => 'v' } } ]
+            filter => {
+                or => [
+                    { prefix => { k => 'v' } }, { prefix => { k => 'v' } }
+                ]
+            }
         }
     },
 
@@ -460,7 +468,11 @@ test_filters(
             }
         }
     },
-    { not => { geo_distance => { k => 'LAT,LON', distance => '10km' } } },
+    {   not => {
+            filter =>
+                { geo_distance => { k => 'LAT,LON', distance => '10km' } }
+        }
+    },
 
     'K: not_geo_distance_range %V',
     {   k => {
@@ -472,8 +484,10 @@ test_filters(
         }
     },
     {   not => {
-            geo_distance_range =>
-                { k => 'LAT,LON', gt => '10km', lt => '10km' }
+            filter => {
+                geo_distance_range =>
+                    { k => 'LAT,LON', gt => '10km', lt => '10km' }
+            }
         }
     },
 
@@ -486,15 +500,20 @@ test_filters(
         }
     },
     {   not => {
-            geo_bounding_box =>
-                { k => { bottom_right => 'LAT,LON', top_left => 'LAT,LON' } }
+            filter => {
+                geo_bounding_box => {
+                    k => { bottom_right => 'LAT,LON', top_left => 'LAT,LON' }
+                }
+            }
         }
     },
 
     'K: not_geo_polygon @V',
     { k => { not_geo_polygon => [ 'LAT,LON', 'LAT,LON' ] } },
     {   not => {
-            geo_polygon => { k => { points => [ 'LAT,LON', 'LAT,LON' ] } }
+            filter => {
+                geo_polygon => { k => { points => [ 'LAT,LON', 'LAT,LON' ] } }
+            }
         }
     },
 

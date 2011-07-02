@@ -69,7 +69,7 @@ test_filters(
 
     '-not',
     { -not => [ k => 1 ] },
-    { not => { term => { k => 1 } } },
+    { not => { filter => { term => { k => 1 } } } },
 );
 
 my %and_or = (
@@ -306,8 +306,8 @@ test_filters(
                 ]
             },
             {   and => [
-                    { not  => { term => { foo => 'toto' } } },
-                    { term => { foo  => 'koko' } }
+                    { not => { filter => { term => { foo => 'toto' } } } },
+                    { term => { foo => 'koko' } }
                 ]
             }
         ]
@@ -353,59 +353,72 @@ test_filters(
 
     'not [k]',
     { -not => ['k'] },
-    { not => { missing => { field => 'k' } } },
+    { not => { filter => { missing => { field => 'k' } } } },
 
     'not{k=>v}',
     { -not => { k => 'v' } },
-    { not => { term => { k => 'v' } } },
+    { not => { filter => { term => { k => 'v' } } } },
 
     'not{k{=v}}',
-    { -not => { k    => { '=' => 'v' } } },
-    { not  => { term => { k   => 'v' } } },
+    { -not => { k => { '=' => 'v' } } },
+    { not => { filter => { term => { k => 'v' } } } },
 
     'not[k=>v]',
     { -not => [ k => 'v' ] },
-    { not => { term => { k => 'v' } } },
+    { not => { filter => { term => { k => 'v' } } } },
 
     'not[k{=v}]',
-    { -not => [ k    => { '=' => 'v' } ] },
-    { not  => { term => { k   => 'v' } } },
+    { -not => [ k => { '=' => 'v' } ] },
+    { not => { filter => { term => { k => 'v' } } } },
 
     'not{k1=>v,k2=>v}',
     { -not => { k1 => 'v', k2 => 'v' } },
     {   not => {
-            and => [ { term => { k1 => 'v' } }, { term => { k2 => 'v' } } ]
+            filter => {
+                and =>
+                    [ { term => { k1 => 'v' } }, { term => { k2 => 'v' } } ]
+            }
         }
     },
 
     'not{k{=v,^v}}',
     { -not => { k => { '=' => 'v', '^' => 'v' } } },
     {   not => {
-            and => [ { term => { k => 'v' } }, { prefix => { k => 'v' } } ]
+            filter => {
+                and =>
+                    [ { term => { k => 'v' } }, { prefix => { k => 'v' } } ]
+            }
         }
     },
 
     'not[k1=>v,k2=>v]',
     { -not => [ k1 => 'v', k2 => 'v' ] },
     {   not => {
-            or => [ { term => { k1 => 'v' } }, { term => { k2 => 'v' } } ]
+            filter => {
+                or => [ { term => { k1 => 'v' } }, { term => { k2 => 'v' } } ]
+            }
         }
     },
 
     'not[k{=v,^v}]',
     { -not => [ k => { '=' => 'v', '^' => 'v' } ] },
     {   not => {
-            and => [ { term => { k => 'v' } }, { prefix => { k => 'v' } } ]
+            filter => {
+                and =>
+                    [ { term => { k => 'v' } }, { prefix => { k => 'v' } } ]
+            }
         }
     },
 
     'not not',
     { -not => { -not => { k => 'v' } } },
-    { not => { not => { term => { k => 'v' } } } },
+    {   not => { filter => { not => { filter => { term => { k => 'v' } } } } }
+    },
 
     'not !=',
     { -not => { k => { '!=' => 'v' } } },
-    { not => { not => { term => { k => 'v' } } } },
+    {   not => { filter => { not => { filter => { term => { k => 'v' } } } } }
+    },
 );
 
 done_testing;
