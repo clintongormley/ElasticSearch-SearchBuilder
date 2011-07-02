@@ -502,10 +502,11 @@ sub _unary_child {
         "Unary $type -has_child",
         $v,
         {   HASHREF => sub {
-                my $p
-                    = $self->_hash_params( 'has_child', $v,
+                my $p = $self->_hash_params(
+                    'has_child', $v,
                     [ 'query', 'type' ],
-                    ['_scope'] );
+                    $type eq 'query' ? [ 'boost', '_scope' ] : ['_scope']
+                );
                 $p->{query} = $self->_recurse( 'query', $p->{query} );
                 return { has_child => $p };
             },
@@ -2385,6 +2386,7 @@ Find parent documents that have child documents which match a query.
             type   => 'comment',
             query  => { tag => 'perl' },
             _scope => 'my_scope',
+            boost  => 1,                    # Query context only
         }
     }
 

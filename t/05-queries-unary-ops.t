@@ -585,25 +585,35 @@ test_queries(
     qr/HASHREF/,
 
     'HAS_CHILD: %V',
-    {   -has_child =>
-            { query => { foo => 'bar' }, type => 'foo', _scope => 'scope' }
+    {   -has_child => {
+            query  => { foo => 'bar' },
+            type   => 'foo',
+            _scope => 'scope',
+            boost  => 1
+        }
     },
     {   has_child => {
             query  => { text => { foo => 'bar' } },
             _scope => 'scope',
-            type   => 'foo'
+            type   => 'foo',
+            boost  => 1
         }
     },
 
     'NOT_HAS_CHILD: %V',
-    {   -not_has_child =>
-            { query => { foo => 'bar' }, type => 'foo', _scope => 'scope' }
+    {   -not_has_child => {
+            query  => { foo => 'bar' },
+            type   => 'foo',
+            _scope => 'scope',
+            boost  => 1
+        }
     },
     {   bool => {
             must_not => [ {
                     has_child => {
                         query  => { text => { foo => 'bar' } },
                         _scope => 'scope',
+                        boost  => 1,
                         type   => 'foo'
                     }
                 }
