@@ -1,5 +1,8 @@
 Revision history for ElasticSearch::SearchBuilder
 
+0.05    2011-07-03
+        Added support for named filters
+
 0.04    2011-07-02
         Added the -all operator
         Changed the -not filter to work with ES < 0.17

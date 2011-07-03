@@ -18,11 +18,11 @@ name: ElasticSearch-SearchBuilder
 provides:
   ElasticSearch::SearchBuilder:
     file: lib/ElasticSearch/SearchBuilder.pm
-    version: 0.04
+    version: 0.05
 requires:
   Scalar::Util: 0
 resources:
   bugtracker: https://github.com/clintongormley/ElasticSearch-SearchBuilder/issues
   license: http://dev.perl.org/licenses/
   repository: http://github.com/clintongormley/ElasticSearch-SearchBuilder/
-version: 0.04
+version: 0.05

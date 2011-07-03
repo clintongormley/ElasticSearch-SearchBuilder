@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Scalar::Util ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 my %SPECIAL_OPS = (
     query => {
@@ -820,6 +820,7 @@ sub _filter_unary_name {
     );
 
 }
+
 #======================================================================
 # FIELD OPS
 #======================================================================
@@ -1370,7 +1371,7 @@ ElasticSearch::SearchBuilder - A Perlish compact query language for ElasticSearc
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 Compatible with ElasticSearch version 0.16
 
