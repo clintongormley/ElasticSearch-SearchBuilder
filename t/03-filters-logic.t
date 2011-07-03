@@ -421,6 +421,48 @@ test_filters(
     },
 );
 
+test_filters(
+    'NAMED FILTERS',
+    '-name: KV',
+    { -name => { foo => { k => 'v' } } },
+    { term => { k => 'v', _name => 'foo' } },
+
+    '-name: KV KV',
+    { -name => { foo => { k => 'v' }, bar => { K => 'V' } } },
+    {   or => [
+            { term => { K => 'V', _name => 'bar' } },
+            { term => { k => 'v', _name => 'foo' } }
+        ]
+    },
+
+    '-name: QUERY KV',
+    { -name => { foo => { -query => { k => 'v' } } } },
+    { fquery => { _name => 'foo', query => { text => { k => 'v' } } } },
+
+    '-name: -cache: QUERY KV',
+    { -name => { foo => { -cache => { -query => { k => 'v' } } } } },
+    {   fquery => {
+            _name  => 'foo',
+            _cache => 1,
+            query  => { text => { k => 'v' } }
+        }
+    },
+
+    '-not_name: -cache: QUERY KV',
+    { -not_name => { foo => { -cache => { -query => { k => 'v' } } } } },
+    {   not => {
+            filter => {
+                fquery => {
+                    _name  => 'foo',
+                    _cache => 1,
+                    query  => { text => { k => 'v' } }
+                }
+            }
+        }
+    },
+
+);
+
 done_testing;
 
 #===================================
