@@ -674,10 +674,9 @@ test_queries(
         }
     },
     {   top_children => {
-            query  => { text => { foo => 'bar' } },
-            _scope => 'scope',
-            type   => 'foo',
-            ,
+            query              => { text => { foo => 'bar' } },
+            _scope             => 'scope',
+            type               => 'foo',
             score              => 'max',
             factor             => 10,
             incremental_factor => 2
@@ -731,6 +730,52 @@ test_queries(
             filter => { term => { k => 'v' } }
         }
     },
+);
+
+test_queries(
+    'UNARY OPERATOR: -nested -not_nested',
+
+    '-nested: V',
+    { -nested => 'V' },
+    qr/HASHREF/,
+
+    '-nested: %V',
+    {   -nested => {
+            path       => 'foo',
+            query      => { foo => 'bar' },
+            score_mode => 'avg',
+            _scope     => 'scope'
+        }
+    },
+    {   nested => {
+            path       => 'foo',
+            query      => { text => { foo => 'bar' } },
+            score_mode => 'avg',
+            _scope     => 'scope'
+        }
+    },
+
+    '-not_nested: %V',
+    {   -not_nested => {
+            path       => 'foo',
+            query      => { foo => 'bar' },
+            score_mode => 'avg',
+            _scope     => 'scope'
+        }
+    },
+    {   bool => {
+            must_not => [ {
+                    nested => {
+                        path       => 'foo',
+                        query      => { text => { foo => 'bar' } },
+                        score_mode => 'avg',
+                        _scope     => 'scope'
+                    }
+                }
+            ]
+        }
+    },
+
 );
 
 done_testing();

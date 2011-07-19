@@ -14,24 +14,23 @@ test_filters(
     "UNARY OPERATOR: all",
 
     "all: 0",
-    {-all=> 0},
-    {match_all=>{}},
-
+    { -all      => 0 },
+    { match_all => {} },
 
     "all: 1",
-    {-all=> 1},
-    {match_all=>{}},
+    { -all      => 1 },
+    { match_all => {} },
 
     "all: []",
-    {-all=> []},
-    {match_all=>{}},
+    { -all      => [] },
+    { match_all => {} },
 
     "all: {}",
-    {-all=> {}},
-    {match_all=>{}},
+    { -all      => {} },
+    { match_all => {} },
 
     "all: {kv}",
-    {-all=> {boost=>1}},
+    { -all => { boost => 1 } },
     qr/Unknown param/
 
 );
@@ -233,6 +232,52 @@ test_filters(
     'NOT_NOCACHE',
     { -not_nocache => {} },
     qr/Invalid op 'not_nocache'/,
+
+);
+
+test_filters(
+    'UNARY OPERATOR: -nested -not_nested',
+
+    '-nested: V',
+    { -nested => 'V' },
+    qr/HASHREF/,
+
+    '-nested: %V',
+    {   -nested => {
+            path   => 'foo',
+            filter => { foo => 'bar' },
+            _cache => 1,
+            _name  => 'name'
+        }
+    },
+    {   nested => {
+            path   => 'foo',
+            filter => { term => { foo => 'bar' } },
+            _cache => 1,
+            _name  => 'name',
+        }
+    },
+
+    '-not_nested: %V',
+    {   -not_nested => {
+            path   => 'foo',
+            filter => { foo => 'bar' },
+            _cache => 1,
+            _name  => 'name'
+        }
+    },
+    {   not => {
+            filter => {
+                nested => {
+                    path   => 'foo',
+                    filter => { term => { foo => 'bar' } },
+                    _cache => 1,
+                    _name  => 'name',
+                }
+                }
+
+        }
+    },
 
 );
 
