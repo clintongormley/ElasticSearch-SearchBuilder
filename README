@@ -24,7 +24,7 @@ DESCRIPTION
 SYNOPSIS
         my $sb = ElasticSearch::SearchBuilder->new();
         my $query = $sb->query({
-            body    => {text => 'interesting keywords'},
+            body    => 'interesting keywords',
             -filter => {
                 status  => 'active',
                 tags    => ['perl','python','ruby'],
@@ -34,6 +34,13 @@ SYNOPSIS
                 },
             }
         })
+
+    NOTE: "ElasticSearch::SearchBuilder" is fully integrated with the
+    ElasticSearch API. Wherever you can specify "query", "filter" or
+    "facet_filter" in ElasticSearch, you can automatically use SearchBuilder
+    by specifying "queryb", "filterb", "facet_filterb" instead.
+
+        $es->search( queryb  => { body => 'interesting keywords' } )
 
 METHODS
   new()
@@ -949,6 +956,59 @@ COMBINING QUERIES
     See Boosting Query
     <http://www.elasticsearch.org/guide/reference/query-dsl/boosting-query.h
     tml>
+
+NESTED QUERIES/FILTERS
+    Nested queries/filters allow you to run queries/filters on nested docs.
+
+    Normally, a doc like this would not allow you to associate the name
+    "perl" with the number 5
+
+       {
+           title:  "my title",
+           tags: [
+            { name: "perl",   num: 5},
+            { name: "python", num: 2}
+           ]
+       }
+
+    However, if "tags" is mapped as a "nested" field, then you can run
+    queries or filters on each sub-doc individually.
+
+    See Nested Mapping
+    <http://github.com/elasticsearch/elasticsearch/issues/1095>
+
+  -nested (QUERY)
+        {
+            -nested => {
+                path        => 'tags',
+                score_mode  => 'avg',
+                _scope      => 'my_tags',
+                query       => {
+                    tags.name    => 'perl',
+                    tags.num     => { gt => 2},
+                }
+            }
+        }
+
+    See Nested Query
+    <http://github.com/elasticsearch/elasticsearch/issues/1095>
+
+  -nested (FILTER)
+        {
+            -nested => {
+                path        => 'tags',
+                score_mode  => 'avg',
+                _cache      => 1,
+                _name       => 'my_filter',
+                filter      => {
+                    tags.name    => 'perl',
+                    tags.num     => { gt => 2},
+                }
+            }
+        }
+
+    See Nested Filter
+    <http://github.com/elasticsearch/elasticsearch/issues/1102>
 
 SCRIPTING
     ElasticSearch supports the use of scripts to customise query or filter

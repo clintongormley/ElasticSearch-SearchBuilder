@@ -1,5 +1,8 @@
 Revision history for ElasticSearch::SearchBuilder
 
+0.06    2011-07-19
+        Added support for nested queries and filters
+
 0.05    2011-07-03
         Added support for named filters
 

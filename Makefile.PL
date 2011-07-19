@@ -11,9 +11,7 @@ WriteMakefile
                    'Test::More' => 0
                  },
   'INSTALLDIRS' => 'site',
-  'EXE_FILES' => [
-                   'bin/demo.psgi'
-                 ],
+  'EXE_FILES' => [],
   'PL_FILES' => {}
 )
 ;
