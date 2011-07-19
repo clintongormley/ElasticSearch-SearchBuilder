@@ -689,7 +689,7 @@ sub _query_unary_boosting {
         "Unary query -boosting",
         $v,
         {   HASHREF => sub {
-                my $p = $self->_hash_params( 'dis_max', $v,
+                my $p = $self->_hash_params( 'boosting', $v,
                     [ 'positive', 'negative', 'negative_boost' ] );
                 $p->{$_} = $self->_recurse( 'query', $p->{$_} )
                     for 'positive', 'negative';
