@@ -1438,7 +1438,7 @@ contact me.
 
     my $sb = ElasticSearch::SearchBuilder->new();
     my $query = $sb->query({
-        body    => {text => 'interesting keywords'},
+        body    => 'interesting keywords',
         -filter => {
             status  => 'active',
             tags    => ['perl','python','ruby'],
@@ -1448,6 +1448,14 @@ contact me.
             },
         }
     })
+
+
+B<NOTE>: C<ElasticSearch::SearchBuilder> is fully integrated with the
+L<ElasticSearch> API.  Wherever you can specify C<query>, C<filter> or
+C<facet_filter> in L<ElasticSearch>, you can automatically use SearchBuilder
+by specifying C<queryb>, C<filterb>, C<facet_filterb> instead.
+
+    $es->search( queryb  => { body => 'interesting keywords' } )
 
 =cut
 
