@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Scalar::Util ();
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 my %SPECIAL_OPS = (
     query => {
@@ -630,6 +630,39 @@ sub _query_unary_custom_score {
                 );
                 $p->{query} = $self->_recurse( 'query', $p->{query} );
                 return { custom_score => $p };
+            },
+        }
+    );
+}
+
+#===================================
+sub _query_unary_custom_filters_score {
+#===================================
+    my ( $self, $v ) = @_;
+    return $self->_SWITCH_refkind(
+        "Unary query -custom_filters_score",
+        $v,
+        {   HASHREF => sub {
+                my $p = $self->_hash_params(
+                    'custom_filters_score', $v,
+                    [ 'query', 'filters' ], ['score_mode']
+                );
+                $p->{query} = $self->_recurse( 'query', $p->{query} );
+                my $raw = $p->{filters};
+                $raw = [$raw] unless ref $raw eq 'ARRAY';
+                my @filters;
+                for my $pf (@$raw) {
+                    $pf = $self->_hash_params( 'custom_filters_score.filters',
+                        $pf, ['filter'],
+                        [ 'boost', 'script', 'params', 'lang' ] );
+                    $pf->{filter}
+                        = $self->_recurse( 'filter', $pf->{filter} );
+                    push @filters, $pf;
+                }
+                $p->{filters} = \@filters;
+                my $filters = $p->{filters};
+
+                return { custom_filters_score => $p };
             },
         }
     );
@@ -2505,6 +2538,38 @@ The C<-custom_score> query allows you to customise the C<_score> or relevance
     }
 
 See L<Custom Score Query|http://www.elasticsearch.org/guide/reference/query-dsl/custom-score-query.html>
+
+=head2 -custom_filters_score
+
+*** Query context only ***
+
+The C<-custom_filters_score> query allows you to boost documents that match
+a filter, either with a C<boost> parameter, or with a custom C<script>.
+
+This is a very powerful and efficient way to boost results which depend on
+matching unanalyzed fields, eg a C<tag> or a C<date>.  Also, these filters
+can be cached.
+
+    {
+        -custom_filters_score => {
+            query       => { foo => 'bar' },
+            score_mode  => 'first|max|total|avg',       # default 'first',
+            filters     => [
+                {
+                    filter => { tag => 'perl' },
+                    boost  => 2,
+                },
+                {
+                    filter => { tag => 'python' },
+                    script => '_score * my_boost',
+                    params => { my_boost => 2},
+                    lang   => 'mvel'
+                },
+            ]
+        }
+    }
+
+See L<Custom Filters Score Query|http://www.elasticsearch.org/guide/reference/query-dsl/custom-filters-score-query.html>
 
 =head2 -script
 

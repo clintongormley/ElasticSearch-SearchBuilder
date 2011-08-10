@@ -611,6 +611,52 @@ test_queries(
 );
 
 test_queries(
+    'UNARY OPERATOR: -custom_filters_score',
+
+    "-custom_filters_score: {filters:{}}",
+    {   -custom_filters_score => {
+            query   => { k      => 'v' },
+            filters => { filter => { k => 'v' }, boost => 2 },
+            score_mode => 'first',
+        }
+    },
+    {   custom_filters_score => {
+            query => { text => { k => 'v' } },
+            filters => [ { filter => { term => { k => 'v' } }, boost => 2 } ],
+            score_mode => 'first'
+        }
+    },
+
+    "-custom_filters_score: {filters:[]}",
+    {   -custom_filters_score => {
+            query   => { k => 'v' },
+            filters => [
+                { filter => { k => 'v' }, boost => 2 },
+                {   filter => { k   => 'v' },
+                    script => 'script',
+                    lang   => 'mvel',
+                    params => { foo => 1 }
+                }
+            ],
+            score_mode => 'first',
+        }
+    },
+    {   custom_filters_score => {
+            query   => { text => { k => 'v' } },
+            filters => [
+                { filter => { term => { k => 'v' } }, boost => 2 },
+                {   filter => { term => { k => 'v' } },
+                    script => 'script',
+                    lang   => 'mvel',
+                    params => { foo => 1 }
+                }
+            ],
+            score_mode => 'first'
+        }
+    },
+);
+
+test_queries(
     'UNARY OPERATOR: has_child, not_has_child',
 
     'HAS_CHILD: V',
