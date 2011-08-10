@@ -3,9 +3,9 @@ NAME
     ElasticSearch
 
 VERSION
-    Version 0.05
+    Version 0.07
 
-    Compatible with ElasticSearch version 0.16
+    Compatible with ElasticSearch version 0.17.4
 
 DESCRIPTION
     The Query DSL for ElasticSearch (see Query DSL
@@ -1040,6 +1040,40 @@ SCRIPTING
     See Custom Score Query
     <http://www.elasticsearch.org/guide/reference/query-dsl/custom-score-que
     ry.html>
+
+  -custom_filters_score
+    *** Query context only ***
+
+    The "-custom_filters_score" query allows you to boost documents that
+    match a filter, either with a "boost" parameter, or with a custom
+    "script".
+
+    This is a very powerful and efficient way to boost results which depend
+    on matching unanalyzed fields, eg a "tag" or a "date". Also, these
+    filters can be cached.
+
+        {
+            -custom_filters_score => {
+                query       => { foo => 'bar' },
+                score_mode  => 'first|max|total|avg',       # default 'first',
+                filters     => [
+                    {
+                        filter => { tag => 'perl' },
+                        boost  => 2,
+                    },
+                    {
+                        filter => { tag => 'python' },
+                        script => '_score * my_boost',
+                        params => { my_boost => 2},
+                        lang   => 'mvel'
+                    },
+                ]
+            }
+        }
+
+    See Custom Filters Score Query
+    <http://www.elasticsearch.org/guide/reference/query-dsl/custom-filters-s
+    core-query.html>
 
   -script
     *** Filter context only ***

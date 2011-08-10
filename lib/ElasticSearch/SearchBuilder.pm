@@ -1444,9 +1444,9 @@ ElasticSearch::SearchBuilder - A Perlish compact query language for ElasticSearc
 
 =head1 VERSION
 
-Version 0.05
+Version 0.07
 
-Compatible with ElasticSearch version 0.16
+Compatible with ElasticSearch version 0.17.4
 
 =cut
 
