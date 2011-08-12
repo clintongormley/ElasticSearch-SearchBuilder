@@ -3,9 +3,9 @@ NAME
     ElasticSearch
 
 VERSION
-    Version 0.07
+    Version 0.08
 
-    Compatible with ElasticSearch version 0.17.4
+    Compatible with ElasticSearch version 0.17.5
 
 DESCRIPTION
     The Query DSL for ElasticSearch (see Query DSL
