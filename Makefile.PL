@@ -8,7 +8,7 @@ WriteMakefile
                    'Scalar::Util' => 0,
                    'Test::Differences' => 0,
                    'Test::Exception' => 0,
-                   'Test::More' => 0
+                   'Test::More' => '0.96'
                  },
   'INSTALLDIRS' => 'site',
   'EXE_FILES' => [],
