@@ -225,6 +225,22 @@ test_filters(
     { -cache => { -query => { k => 'v' } } },
     { fquery => { _cache => 1, query => { text => { k => 'v' } } } },
 
+    'CACHE WITH AND',
+    { -cache => { foo => 1, bar => 2 } },
+    {   and => {
+            _cache  => 1,
+            filters => [ { term => { bar => 2 } }, { term => { foo => 1 } } ]
+        }
+    },
+
+    'CACHE WITH OR',
+    { -cache => [ foo => 1, bar => 2 ] },
+    {   or => {
+            _cache  => 1,
+            filters => [ { term => { foo => 1 } }, { term => { bar => 2 } } ]
+        }
+    },
+
     'NOT_CACHE',
     { -not_cache => {} },
     qr/Invalid op 'not_cache'/,

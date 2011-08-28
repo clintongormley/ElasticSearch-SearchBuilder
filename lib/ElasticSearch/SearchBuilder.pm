@@ -863,6 +863,10 @@ sub _filter_unary_cache {
         $filter = { fquery => $filter };
         $type = 'fquery';
     }
+    elsif ( $type eq 'or' or $type eq 'and' ) {
+        my $filters = $filter->{$type};
+        $filter->{$type} = { filters => $filters } if ref $filters eq 'ARRAY';
+    }
     $filter->{$type}{_cache} = $op eq 'cache' ? 1 : 0;
     return $filter;
 }
