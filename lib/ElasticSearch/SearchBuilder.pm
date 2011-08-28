@@ -903,13 +903,15 @@ sub _filter_unary_name {
 #===================================
 sub _query_field_prefix {
 #===================================
-    shift->_query_field_generic( @_, 'prefix', ['value'], ['boost'] );
+    shift->_query_field_generic( @_, 'prefix', ['value'],
+        [ 'boost', 'rewrite' ] );
 }
 
 #===================================
 sub _query_field_wildcard {
 #===================================
-    shift->_query_field_generic( @_, 'wildcard', ['value'], ['boost'] );
+    shift->_query_field_generic( @_, 'wildcard', ['value'],
+        [ 'boost', 'rewrite' ] );
 }
 
 #===================================
@@ -959,7 +961,7 @@ sub _query_field_query_string {
         [   qw(default_operator analyzer allow_leading_wildcard
                 lowercase_expanded_terms enable_position_increments
                 fuzzy_prefix_length fuzzy_min_sim phrase_slop boost
-                analyze_wildcard auto_generate_phrase_queries)
+                analyze_wildcard auto_generate_phrase_queries rewrite)
         ]
     );
 }
@@ -2147,6 +2149,7 @@ L<ElasticSearch::QueryParser> to fix any syntax errors.
             boost                        => 2,
             analyze_wildcard             => 1,
             auto_generate_phrase_queries => 0,
+            rewrite                      => 'constant_score_default',
         }
     }}
 
@@ -2311,8 +2314,10 @@ even on analyzed fields.  Generally you should use C<^> instead.
     # With extra options
     { lang => {
         'prefix' => {
-            value => 'p',
-            boost => 2
+            value   => 'p',
+            boost   => 2,
+            rewrite => 'constant_score_default',
+
         }
     }}
 

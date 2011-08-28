@@ -612,8 +612,23 @@ for my $op (qw(prefix)) {
         qr/ARRAYREF, HASHREF, SCALAR/,
 
         'K: $op {}',
-        { k      => { $op => { value => 'v', boost => 1 } } },
-        { prefix => { k   => { value => 'v', boost => 1 } } },
+        {   k => {
+                $op => {
+                    value   => 'v',
+                    boost   => 1,
+                    rewrite => 'constant_score_default',
+                }
+            }
+        },
+        {   prefix => {
+                k => {
+                    value   => 'v',
+                    boost   => 1,
+                    rewrite => 'constant_score_default',
+
+                }
+            }
+        },
     );
 }
 
@@ -656,10 +671,25 @@ for my $op (qw(not_prefix)) {
         qr/ARRAYREF, HASHREF, SCALAR/,
 
         'K: $op {}',
-        { k => { $op => { value => 'v', boost => 1 } } },
+        {   k => {
+                $op => {
+                    value   => 'v',
+                    boost   => 1,
+                    rewrite => 'constant_score_default',
+                }
+            }
+        },
         {   bool => {
-                must_not =>
-                    [ { prefix => { k => { value => 'v', boost => 1 } } } ]
+                must_not => [ {
+                        prefix => {
+                            k => {
+                                value   => 'v',
+                                boost   => 1,
+                                rewrite => 'constant_score_default',
+                            }
+                        }
+                    }
+                ]
             }
         },
     );
@@ -704,8 +734,22 @@ for my $op (qw(* wildcard)) {
         qr/ARRAYREF, HASHREF, SCALAR/,
 
         'K: $op {}',
-        { k        => { $op => { value => 'v', boost => 1 } } },
-        { wildcard => { k   => { value => 'v', boost => 1 } } },
+        {   k => {
+                $op => {
+                    value   => 'v',
+                    boost   => 1,
+                    rewrite => 'constant_score_default',
+                }
+            }
+        },
+        {   wildcard => {
+                k => {
+                    value   => 'v',
+                    boost   => 1,
+                    rewrite => 'constant_score_default',
+                }
+            }
+        },
     );
 }
 
@@ -749,10 +793,25 @@ for my $op (qw(not_wildcard)) {
         qr/ARRAYREF, HASHREF, SCALAR/,
 
         'K: $op {}',
-        { k => { $op => { value => 'v', boost => 1 } } },
+        {   k => {
+                $op => {
+                    value   => 'v',
+                    boost   => 1,
+                    rewrite => 'constant_score_default',
+                }
+            }
+        },
         {   bool => {
-                must_not =>
-                    [ { wildcard => { k => { value => 'v', boost => 1 } } } ]
+                must_not => [ {
+                        wildcard => {
+                            k => {
+                                value   => 'v',
+                                boost   => 1,
+                                rewrite => 'constant_score_default',
+                            }
+                        }
+                    }
+                ]
             }
         },
     );
@@ -1366,6 +1425,8 @@ for my $op (qw(query_string qs)) {
                     boost                        => 1,
                     analyze_wildcard             => 1,
                     auto_generate_phrase_queries => 0,
+                    rewrite                      => 'constant_score_default',
+
                 }
             }
         },
@@ -1383,6 +1444,7 @@ for my $op (qw(query_string qs)) {
                     boost                        => 1,
                     analyze_wildcard             => 1,
                     auto_generate_phrase_queries => 0,
+                    rewrite                      => 'constant_score_default',
                 }
             }
         },
@@ -1446,6 +1508,7 @@ for my $op (qw(not_query_string not_qs)) {
                     boost                        => 1,
                     analyze_wildcard             => 1,
                     auto_generate_phrase_queries => 0,
+                    rewrite                      => 'constant_score_default',
                 }
             }
         },
@@ -1465,6 +1528,7 @@ for my $op (qw(not_query_string not_qs)) {
                                 boost                        => 1,
                                 analyze_wildcard             => 1,
                                 auto_generate_phrase_queries => 0,
+                                rewrite => 'constant_score_default',
                             }
                         }
                     }
