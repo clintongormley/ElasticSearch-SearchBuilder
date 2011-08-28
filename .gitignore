@@ -1,4 +1,5 @@
 bench_data.json
+.build
 /_build
 /blib
 /.includepath
@@ -9,3 +10,4 @@ bench_data.json
 /MYMETA.yml
 log
 *.bak
+ElasticSearch-Search*
