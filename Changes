@@ -1,5 +1,13 @@
 Revision history for ElasticSearch::SearchBuilder
 
+0.09    2011-08-28
+        Documented geo filters
+        Aliased geo_bbox to geo_bounding_box
+        Added "normalize" and "optimize_bbox" parameters to geo filters
+        Made -cache work with and|or filters
+        Added "rewrite" parameter to query_string, prefix and wildcard queries
+        Converted to Dist::Zilla
+
 0.08    2011-08-12
         Fixed Test::More dependency - thanks to AVAR
 
