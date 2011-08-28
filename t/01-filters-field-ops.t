@@ -404,12 +404,20 @@ test_filters(
     'K: geo_distance %V',
     {   k => {
             geo_distance => {
-                location => 'LAT,LON',
-                distance => '10km',
+                location      => 'LAT,LON',
+                distance      => '10km',
+                normalize     => 0,
+                optimize_bbox => 0,
             }
         }
     },
-    { geo_distance => { k => 'LAT,LON', distance => '10km' } },
+    {   geo_distance => {
+            k             => 'LAT,LON',
+            distance      => '10km',
+            normalize     => 0,
+            optimize_bbox => 0
+        }
+    },
 
     'K: geo_distance FOO',
     { k => { geo_distance => 'FOO' } },
@@ -418,16 +426,47 @@ test_filters(
     'K: geo_distance_range %V',
     {   k => {
             geo_distance_range => {
-                location => 'LAT,LON',
-                'gt'     => '10km',
-                'lt'     => '10km'
+                location      => 'LAT,LON',
+                'gt'          => '10km',
+                'lt'          => '10km',
+                normalize     => 0,
+                optimize_bbox => 0,
             },
         }
     },
-    { geo_distance_range => { k => 'LAT,LON', gt => '10km', lt => '10km' } },
+    {   geo_distance_range => {
+            k             => 'LAT,LON',
+            gt            => '10km',
+            lt            => '10km',
+            normalize     => 0,
+            optimize_bbox => 0,
+        }
+    },
 
     'K: geo_distance_range FOO',
     { k => { geo_distance => 'FOO' } },
+    qr/hashref/,
+
+    'K: geo_bbox %V',
+    {   k => {
+            geo_bbox => {
+                top_left     => 'LAT,LON',
+                bottom_right => 'LAT,LON',
+                normalize    => 0,
+            },
+        }
+    },
+    {   geo_bounding_box => {
+            k => {
+                bottom_right => 'LAT,LON',
+                top_left     => 'LAT,LON',
+                normalize    => 0,
+            }
+        }
+    },
+
+    'K: geo_bbox FOO',
+    { k => { geo_bbox => 'FOO' } },
     qr/hashref/,
 
     'K: geo_bounding_box %V',
@@ -435,11 +474,17 @@ test_filters(
             geo_bounding_box => {
                 top_left     => 'LAT,LON',
                 bottom_right => 'LAT,LON',
+                normalize    => 0,
             },
         }
     },
-    {   geo_bounding_box =>
-            { k => { bottom_right => 'LAT,LON', top_left => 'LAT,LON' } }
+    {   geo_bounding_box => {
+            k => {
+                bottom_right => 'LAT,LON',
+                top_left     => 'LAT,LON',
+                normalize    => 0,
+            }
+        }
     },
 
     'K: geo_bounding_box FOO',
@@ -449,6 +494,16 @@ test_filters(
     'K: geo_polygon @V',
     { k => { geo_polygon => [ 'LAT,LON', 'LAT,LON' ] } },
     { geo_polygon => { k => { points => [ 'LAT,LON', 'LAT,LON' ] } } },
+
+    'K: geo_polygon {}',
+    {   k => {
+            geo_polygon =>
+                { points => [ 'LAT,LON', 'LAT,LON' ], normalize => 0 }
+        }
+    },
+    {   geo_polygon =>
+            { k => { points => [ 'LAT,LON', 'LAT,LON' ], normalize => 0 } }
+    },
 
     'K: geo_polygon FOO',
     { k => { geo_polygon => 'FOO' } },
@@ -463,30 +518,45 @@ test_filters(
     'K: not_geo_distance %V',
     {   k => {
             not_geo_distance => {
-                location => 'LAT,LON',
-                distance => '10km',
+                location      => 'LAT,LON',
+                distance      => '10km',
+                normalize     => 0,
+                optimize_bbox => 0,
             }
         }
     },
     {   not => {
-            filter =>
-                { geo_distance => { k => 'LAT,LON', distance => '10km' } }
+            filter => {
+                geo_distance => {
+                    k             => 'LAT,LON',
+                    distance      => '10km',
+                    normalize     => 0,
+                    optimize_bbox => 0
+                }
+            }
         }
     },
 
     'K: not_geo_distance_range %V',
     {   k => {
             not_geo_distance_range => {
-                location => 'LAT,LON',
-                'gt'     => '10km',
-                'lt'     => '10km'
+                location      => 'LAT,LON',
+                'gt'          => '10km',
+                'lt'          => '10km',
+                normalize     => 0,
+                optimize_bbox => 0
             },
         }
     },
     {   not => {
             filter => {
-                geo_distance_range =>
-                    { k => 'LAT,LON', gt => '10km', lt => '10km' }
+                geo_distance_range => {
+                    k             => 'LAT,LON',
+                    gt            => '10km',
+                    lt            => '10km',
+                    normalize     => 0,
+                    optimize_bbox => 0
+                }
             }
         }
     },
@@ -496,13 +566,18 @@ test_filters(
             not_geo_bounding_box => {
                 top_left     => 'LAT,LON',
                 bottom_right => 'LAT,LON',
+                normalize    => 0
             },
         }
     },
     {   not => {
             filter => {
                 geo_bounding_box => {
-                    k => { bottom_right => 'LAT,LON', top_left => 'LAT,LON' }
+                    k => {
+                        bottom_right => 'LAT,LON',
+                        top_left     => 'LAT,LON',
+                        normalize    => 0
+                    }
                 }
             }
         }
@@ -513,6 +588,24 @@ test_filters(
     {   not => {
             filter => {
                 geo_polygon => { k => { points => [ 'LAT,LON', 'LAT,LON' ] } }
+            }
+        }
+    },
+
+    'K: not_geo_polygon {}',
+    {   k => {
+            not_geo_polygon =>
+                { points => [ 'LAT,LON', 'LAT,LON' ], normalize => 0 }
+        }
+    },
+    {   not => {
+            filter => {
+                geo_polygon => {
+                    k => {
+                        points    => [ 'LAT,LON', 'LAT,LON' ],
+                        normalize => 0
+                    }
+                }
             }
         }
     },
