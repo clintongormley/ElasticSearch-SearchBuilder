@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Scalar::Util ();
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 my %SPECIAL_OPS = (
     query => {

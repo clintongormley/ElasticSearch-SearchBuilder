@@ -1,5 +1,8 @@
 Revision history for ElasticSearch::SearchBuilder
 
+0.10    2011-10-17
+        Fixed a bug in _hash_params which was disallowing a parameter of "0"
+
 0.09    2011-08-28
         Documented geo filters
         Aliased geo_bbox to geo_bounding_box
