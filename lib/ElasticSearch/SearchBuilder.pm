@@ -1426,14 +1426,15 @@ sub _hash_params {
 
     my %params;
     for (@$req) {
-        $params{$_} = delete $val->{$_}
-            or croak "'$op' missing required param '$_'";
+        my $v = $params{$_} = delete $val->{$_};
+        croak "'$op' missing required param '$_'"
+            unless defined $v and length $v;
     }
     if ($opt) {
         for (@$opt) {
             next unless exists $val->{$_};
             my $val = delete $val->{$_};
-            $params{$_} = defined $val ? $val : '';
+            $params{$_} = defined($val) && length($val) ? $val : '';
         }
     }
 
