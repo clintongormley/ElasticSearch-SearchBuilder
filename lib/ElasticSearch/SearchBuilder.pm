@@ -2501,7 +2501,9 @@ with the number C<5>
 However, if C<tags> is mapped as a C<nested> field, then you can run queries
 or filters on each sub-doc individually.
 
-See L<Nested Mapping|http://github.com/elasticsearch/elasticsearch/issues/1095>
+See L<Nested Mapping|http://github.com/elasticsearch/elasticsearch/issues/1095>,
+L<Nested Type|http://www.elasticsearch.org/guide/reference/mapping/nested-type.html>
+and L<Nested Query|http://www.elasticsearch.org/guide/reference/query-dsl/nested-query.html>
 
 =head2 -nested (QUERY)
 
@@ -2511,8 +2513,8 @@ See L<Nested Mapping|http://github.com/elasticsearch/elasticsearch/issues/1095>
             score_mode  => 'avg',
             _scope      => 'my_tags',
             query       => {
-                tags.name    => 'perl',
-                tags.num     => { gt => 2},
+                "tags.name"  => 'perl',
+                "tags.num"   => { gt => 2 },
             }
         }
     }
