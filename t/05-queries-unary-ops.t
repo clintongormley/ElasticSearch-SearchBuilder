@@ -288,6 +288,7 @@ for my $op (qw(-qs -query_string)) {
                 fuzzy_min_sim                => 0.5,
                 fuzzy_prefix_length          => 2,
                 lowercase_expanded_terms     => 1,
+                minimum_number_should_match  => 3,
                 phrase_slop                  => 10,
                 tie_breaker                  => 1.5,
                 use_dis_max                  => 1
@@ -306,6 +307,7 @@ for my $op (qw(-qs -query_string)) {
                 fuzzy_min_sim                => 0.5,
                 fuzzy_prefix_length          => 2,
                 lowercase_expanded_terms     => 1,
+                minimum_number_should_match  => 3,
                 phrase_slop                  => 10,
                 tie_breaker                  => 1.5,
                 use_dis_max                  => 1
@@ -344,6 +346,7 @@ for my $op (qw(-not_qs -not_query_string)) {
                 fuzzy_min_sim                => 0.5,
                 fuzzy_prefix_length          => 2,
                 lowercase_expanded_terms     => 1,
+                minimum_number_should_match  => 3,
                 phrase_slop                  => 10,
                 tie_breaker                  => 1.5,
                 use_dis_max                  => 1
@@ -364,6 +367,7 @@ for my $op (qw(-not_qs -not_query_string)) {
                             fuzzy_min_sim                => 0.5,
                             fuzzy_prefix_length          => 2,
                             lowercase_expanded_terms     => 1,
+                            minimum_number_should_match  => 3,
                             phrase_slop                  => 10,
                             tie_breaker                  => 1.5,
                             use_dis_max                  => 1

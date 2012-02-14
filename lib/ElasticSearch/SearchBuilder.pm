@@ -554,7 +554,8 @@ sub _query_unary_query_string {
                             default_operator enable_position_increments
                             fields fuzzy_min_sim fuzzy_prefix_length
                             lowercase_expanded_terms phrase_slop
-                            tie_breaker use_dis_max)
+                            tie_breaker use_dis_max
+                            minimum_number_should_match )
                     ]
                 );
                 return { query_string => $p };
@@ -1020,7 +1021,8 @@ sub _query_field_query_string {
         [   qw(default_operator analyzer allow_leading_wildcard
                 lowercase_expanded_terms enable_position_increments
                 fuzzy_prefix_length fuzzy_min_sim phrase_slop boost
-                analyze_wildcard auto_generate_phrase_queries rewrite)
+                analyze_wildcard auto_generate_phrase_queries rewrite
+                minimum_number_should_match)
         ]
     );
 }
@@ -2226,6 +2228,7 @@ L<ElasticSearch::QueryParser> to fix any syntax errors.
             analyze_wildcard             => 1,
             auto_generate_phrase_queries => 0,
             rewrite                      => 'constant_score_default',
+            minimum_number_should_match  => 3,
         }
     }}
 
@@ -2247,7 +2250,8 @@ against multiple fields:
             analyze_wildcard             => 1,
             auto_generate_phrase_queries => 0,
             use_dis_max                  => 1,
-            tie_breaker                  => 0.7
+            tie_breaker                  => 0.7,
+            minimum_number_should_match  => 3,
     }}
 
 See L<Query-string Query|http://www.elasticsearch.org/guide/reference/query-dsl/query-string-query.html>
