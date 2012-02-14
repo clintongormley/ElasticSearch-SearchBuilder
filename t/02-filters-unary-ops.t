@@ -252,6 +252,38 @@ test_filters(
 );
 
 test_filters(
+    'UNARY OPERATOR: -cache_key',
+    '-cache_key: V',
+    { -cache_key => 'V' },
+    qr/HASHREF|ARRAYREF/,
+
+    '-cache_key: {}',
+    {   -cache_key => {
+            foo => { a => 1 },
+            bar => { b => 1 }
+        }
+    },
+    {   and => [
+            { term => { _cache_key => 'bar', b => 1 } },
+            { term => { _cache_key => 'foo', a => 1 } }
+        ]
+    },
+
+    '-cache_key: []',
+    {   -cache_key => [
+            foo => { a => 1 },
+            bar => { b => 1 }
+        ]
+    },
+    {   or => [
+            { term => { _cache_key => 'foo', a => 1 } },
+            { term => { _cache_key => 'bar', b => 1 } }
+        ]
+    },
+
+);
+
+test_filters(
     'UNARY OPERATOR: -nested -not_nested',
 
     '-nested: V',

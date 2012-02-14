@@ -848,8 +848,8 @@ sub _filter_unary_nested {
         {   HASHREF => sub {
                 my $p = $self->_hash_params(
                     'nested', $v,
-                    [ 'path',   'filter' ],
-                    [ '_cache', '_name' ],
+                    [ 'path', 'filter' ],
+                    [ '_cache', '_name', '_cache_key' ],
                 );
                 $p->{filter} = $self->_recurse( 'filter', $p->{filter} );
                 return { nested => $p };
@@ -918,6 +918,39 @@ sub _filter_unary_name {
         }
     );
 
+}
+
+#===================================
+sub _filter_unary_cache_key {
+#===================================
+    my ( $self, $v ) = @_;
+    return $self->_SWITCH_refkind(
+        "Unary filter -cache_key",
+        $v,
+        {   HASHREF  => sub { $self->_join_cache_keys( 'and', %$v ) },
+            ARRAYREF => sub { $self->_join_cache_keys( 'or',  @$v ) }
+        }
+    );
+
+}
+
+#===================================
+sub _join_cache_keys {
+#===================================
+    my ( $self, $op, @v ) = @_;
+    my @filters;
+    while (@v) {
+        my $key = shift @v;
+        my $filter = $self->_recurse( 'filter', shift @v ) or next;
+        my ($type) = grep { !/^_/ } keys %$filter;
+        if ( $type eq 'query' ) {
+            $filter = { fquery => $filter };
+            $type = 'fquery';
+        }
+        $filter->{$type}{_cache_key} = $key;
+        push @filters, $filter;
+    }
+    return $self->_join_clauses( 'filter', $op, \@filters );
 }
 
 #======================================================================
@@ -2927,6 +2960,30 @@ C<-cache> or C<-nocache>:
 
 See L<Query DSL|http://www.elasticsearch.org/guide/reference/query-dsl/> for more
 details about what is cached by default and what is not.
+
+=head2 -cache_key
+
+It is also possible to use a name to identify a cached filter. For instance:
+
+    {
+        -cache_key => {
+            friends => { person_id => [1,2,3] },
+            enemies => { person_id => [4,5,6] },
+        }
+    }
+
+In the above example, the two filters will be joined by an C<and> filter. The
+following example will have the two filters joined by an C<or> filter:
+
+    {
+        -cache_key => [
+            friends => { person_id => [1,2,3] },
+            enemies => { person_id => [4,5,6] },
+        ]
+    }
+
+See L<_cache_key|http://www.elasticsearch.org/guide/reference/query-dsl/index.html> for
+more details.
 
 =head1 RAW ELASTICSEARCH QUERY DSL
 
