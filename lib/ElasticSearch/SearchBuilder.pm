@@ -88,7 +88,8 @@ sub _top_ARRAYREF {
                 HASHREF => sub {
                     $self->_recurse( $type, $el, 'and' ) if %$el;
                 },
-                SCALAR => sub {
+                HASHREFREF => sub {$$el},
+                SCALAR     => sub {
                     $self->_recurse( $type, { $el => shift(@args) } );
                 },
                 UNDEF => sub { croak "UNDEF in arrayref not supported" },
@@ -148,13 +149,6 @@ sub _top_HASHREF {
 }
 
 #===================================
-sub _top_SCALARREF {
-#===================================
-    my ( $self, $type, $params ) = @_;
-    return ($$params);
-}
-
-#===================================
 sub _top_SCALAR {
 #===================================
     my ( $self, $type, $params ) = @_;
@@ -164,10 +158,10 @@ sub _top_SCALAR {
 }
 
 #===================================
-sub _top_UNDEF {
+sub _top_HASHREFREF { return ${ $_[2] } }
+sub _top_SCALARREF  { return ${ $_[2] } }
+sub _top_UNDEF      {return}
 #===================================
-    return ();
-}
 
 #======================================================================
 # HASH PAIRS
@@ -2883,6 +2877,73 @@ C<-cache> or C<-nocache>:
 See L<Query DSL|http://www.elasticsearch.org/guide/reference/query-dsl/> for more
 details about what is cached by default and what is not.
 
+=head1 RAW ELASTICSEARCH QUERY DSL
+
+Sometimes, instead of using the SearchBuilder syntax, you may want to revert
+to the raw Query DSL that ElasticSearch uses.
+
+You can do this by passing a reference to a HASH ref, for instance:
+
+    $sb->query({
+        foo => 1,
+        -filter => \{ term => { bar => 2 }}
+    })
+
+Would result in:
+
+    {
+        query => {
+            filtered => {
+                query => {
+                    text => { foo => 1 }
+                },
+                filter => {
+                    term => { bar => 2 }
+                }
+            }
+        }
+    }
+
+An example with OR'ed filters:
+
+    $sb->filter([
+        foo => 1,
+        \{ term => { bar => 2 }}
+    ])
+
+Would result in:
+
+    {
+        filter => {
+            or => [
+                { term => { foo => 1 }},
+                { term => { bar => 2 }}
+            ]
+        }
+    }
+
+An example with AND'ed filters:
+
+    $sb->filter({
+        -and => [
+            foo => 1 ,
+            \{ term => { bar => 2 }}
+        ]
+    })
+
+Would result in:
+
+    {
+        filter => {
+            and => [
+                { term => { foo => 1 }},
+                { term => { bar => 2 }}
+            ]
+        }
+    }
+
+Wherever a filter or query is expected, passing a reference to a HASH-ref is
+accepted.
 
 =cut
 
