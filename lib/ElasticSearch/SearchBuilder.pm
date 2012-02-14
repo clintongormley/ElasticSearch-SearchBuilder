@@ -805,7 +805,10 @@ sub _filter_unary_type {
         "Unary filter -type",
         $v,
         {   SCALAR   => sub { return { type => { value => $v } } },
-            ARRAYREF => sub { return { type => { value => $v } } },
+            ARRAYREF => sub {
+                my @clauses = map { +{ type => { value => $_ } } } @$v;
+                return $self->_join_clauses( 'filter', 'or', \@clauses );
+            },
         }
     );
 }

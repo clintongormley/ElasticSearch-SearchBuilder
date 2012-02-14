@@ -91,8 +91,11 @@ test_filters(
     { type => { value => 'foo' } },
 
     'TYPE: @foo',
-    { -type => ['foo'] },
-    { type => { value => ['foo'] } },
+    { -type => [ 'foo', 'bar' ] },
+    {   or => [
+            { type => { value => 'foo' } }, { type => { value => 'bar' } }
+        ]
+    },
 
     'TYPE: UNDEF',
     { -type => undef },
@@ -103,8 +106,16 @@ test_filters(
     { not => { filter => { type => { value => 'foo' } } } },
 
     'NOT_TYPE: @foo',
-    { -not_type => ['foo'] },
-    { not => { filter => { type => { value => ['foo'] } } } },
+    { -not_type => [ 'foo', 'bar' ] },
+    {   not => {
+            filter => {
+                or => [
+                    { type => { value => 'foo' } },
+                    { type => { value => 'bar' } }
+                ]
+            }
+        }
+    },
 );
 
 test_filters(
