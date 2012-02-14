@@ -407,7 +407,7 @@ test_filters(
                 location      => 'LAT,LON',
                 distance      => '10km',
                 normalize     => 0,
-                optimize_bbox => 0,
+                optimize_bbox => 'indexed',
             }
         }
     },
@@ -415,7 +415,7 @@ test_filters(
             k             => 'LAT,LON',
             distance      => '10km',
             normalize     => 0,
-            optimize_bbox => 0
+            optimize_bbox => 'indexed'
         }
     },
 
@@ -430,7 +430,7 @@ test_filters(
                 'gt'          => '10km',
                 'lt'          => '10km',
                 normalize     => 0,
-                optimize_bbox => 0,
+                optimize_bbox => 'indexed',
             },
         }
     },
@@ -439,7 +439,7 @@ test_filters(
             gt            => '10km',
             lt            => '10km',
             normalize     => 0,
-            optimize_bbox => 0,
+            optimize_bbox => 'indexed',
         }
     },
 
@@ -453,6 +453,7 @@ test_filters(
                 top_left     => 'LAT,LON',
                 bottom_right => 'LAT,LON',
                 normalize    => 0,
+                type         => 'indexed',
             },
         }
     },
@@ -461,6 +462,7 @@ test_filters(
                 bottom_right => 'LAT,LON',
                 top_left     => 'LAT,LON',
                 normalize    => 0,
+                type         => 'indexed',
             }
         }
     },
@@ -475,6 +477,7 @@ test_filters(
                 top_left     => 'LAT,LON',
                 bottom_right => 'LAT,LON',
                 normalize    => 0,
+                type         => 'indexed',
             },
         }
     },
@@ -483,6 +486,7 @@ test_filters(
                 bottom_right => 'LAT,LON',
                 top_left     => 'LAT,LON',
                 normalize    => 0,
+                type         => 'indexed',
             }
         }
     },
@@ -521,7 +525,7 @@ test_filters(
                 location      => 'LAT,LON',
                 distance      => '10km',
                 normalize     => 0,
-                optimize_bbox => 0,
+                optimize_bbox => 'indexed',
             }
         }
     },
@@ -531,7 +535,7 @@ test_filters(
                     k             => 'LAT,LON',
                     distance      => '10km',
                     normalize     => 0,
-                    optimize_bbox => 0
+                    optimize_bbox => 'indexed'
                 }
             }
         }
@@ -544,7 +548,7 @@ test_filters(
                 'gt'          => '10km',
                 'lt'          => '10km',
                 normalize     => 0,
-                optimize_bbox => 0
+                optimize_bbox => 'indexed'
             },
         }
     },
@@ -555,7 +559,7 @@ test_filters(
                     gt            => '10km',
                     lt            => '10km',
                     normalize     => 0,
-                    optimize_bbox => 0
+                    optimize_bbox => 'indexed'
                 }
             }
         }
@@ -566,7 +570,8 @@ test_filters(
             not_geo_bounding_box => {
                 top_left     => 'LAT,LON',
                 bottom_right => 'LAT,LON',
-                normalize    => 0
+                normalize    => 0,
+                type         => 'indexed',
             },
         }
     },
@@ -576,7 +581,8 @@ test_filters(
                     k => {
                         bottom_right => 'LAT,LON',
                         top_left     => 'LAT,LON',
-                        normalize    => 0
+                        normalize    => 0,
+                        type         => 'indexed',
                     }
                 }
             }

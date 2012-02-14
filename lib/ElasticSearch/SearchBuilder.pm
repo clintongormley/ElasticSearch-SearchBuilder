@@ -1329,8 +1329,11 @@ sub _filter_field_geo_bounding_box {
 #===================================
     my $self = shift;
     my $k    = shift;
-    my $p    = $self->_hash_params( @_, [qw(top_left bottom_right)],
-        ['normalize'] );
+    my $p    = $self->_hash_params(
+        @_,
+        [qw(top_left bottom_right)],
+        [ 'normalize', 'type' ]
+    );
     return { geo_bounding_box => { $k => $p } };
 }
 
@@ -2747,7 +2750,7 @@ a given point:
                 location      => { lat => 10, lon => 5 },
                 distance      => '5km',
                 normalize     => 1 | 0,
-                optimize_bbox => 1 | 0,
+                optimize_bbox => memory | indexed | none,
             }
         }
     }
@@ -2770,7 +2773,7 @@ filter, but expressed as a range:
                 include_lower   => 1 | 0,
                 include_upper   => 0 | 1
                 normalize       => 1 | 0,
-                optimize_bbox   => 1 | 0,
+                optimize_bbox   => memory | indexed | none,
             }
         }
     }
@@ -2792,7 +2795,8 @@ rectangle:
             -geo_bbox => {
                 top_left     => { lat => 9, lon => 4  },
                 bottom_right => { lat => 10, lon => 5 },
-                normalize    => 1 | 0
+                normalize    => 1 | 0,
+                type         => memory | indexed
             }
         }
     }
