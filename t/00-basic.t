@@ -27,6 +27,9 @@ is( scalar $a->filter( {} ), undef, 'Empty {}' );
 is( scalar $a->filter( [ [], {} ] ), undef, 'Empty [[]{}]' );
 is( scalar $a->filter( { [], {} } ), undef, 'Empty {[]{}}' );
 is( scalar $a->filter( { -ids => [] } ), undef, 'IDS=>[]' );
+eq_or_diff $a->filter( \{ term => { foo => 1 } } ),
+    { filter => { term => { foo => 1 } } },
+    '\\{}';
 
 throws_ok { $a->filter( 1, 2 ) } qr/Too many params/, '1,2';
 throws_ok { $a->filter( [undef] ) } qr/UNDEF in arrayref/, '[undef]';
