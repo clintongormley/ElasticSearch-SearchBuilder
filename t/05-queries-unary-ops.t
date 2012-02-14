@@ -779,6 +779,66 @@ test_queries(
 );
 
 test_queries(
+    'UNARY OPERATOR: -indices',
+
+    '-indices: V',
+    { -indices => 'V' },
+    qr/HASHREF/,
+
+    '-indices: {}',
+    { -indices => { indices => 'foo', query => { foo => 1 } } },
+    { indices => { indices => ['foo'], query => { text => { foo => 1 } } } },
+
+    '-indices: {""}',
+    {   -indices =>
+            { indices => 'foo', query => { foo => 1 }, no_match_query => '' }
+    },
+    { indices => { indices => ['foo'], query => { text => { foo => 1 } } } },
+
+    '-indices: {none}',
+    {   -indices => {
+            indices        => 'foo',
+            query          => { foo => 1 },
+            no_match_query => 'none'
+        }
+    },
+    {   indices => {
+            indices        => ['foo'],
+            query          => { text => { foo => 1 } },
+            no_match_query => 'none'
+        }
+    },
+
+    '-indices: {all}',
+    {   -indices => {
+            indices        => 'foo',
+            query          => { foo => 1 },
+            no_match_query => 'all'
+        }
+    },
+    {   indices => {
+            indices        => ['foo'],
+            query          => { text => { foo => 1 } },
+            no_match_query => 'all'
+        }
+    },
+
+    '-indices: {query}',
+    {   -indices => {
+            indices        => 'foo',
+            query          => { foo => 1 },
+            no_match_query => { foo => 2 }
+        }
+    },
+    {   indices => {
+            indices        => ['foo'],
+            query          => { text => { foo => 1 } },
+            no_match_query => { text => { foo => 2 } }
+        }
+    },
+);
+
+test_queries(
     'UNARY OPERATOR: -nested -not_nested',
 
     '-nested: V',

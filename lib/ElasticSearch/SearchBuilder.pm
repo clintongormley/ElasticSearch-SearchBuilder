@@ -727,6 +727,34 @@ sub _query_unary_boosting {
 }
 
 #===================================
+sub _query_unary_indices {
+#===================================
+    my ( $self, $v ) = @_;
+    return $self->_SWITCH_refkind(
+        "Unary query -indices",
+        $v,
+        {   HASHREF => sub {
+                my $p
+                    = $self->_hash_params( 'indices', $v,
+                    [ 'indices', 'query' ],
+                    ['no_match_query'] );
+                $p->{indices} = [ $p->{indices} ]
+                    unless ref $p->{indices} eq 'ARRAY';
+                $p->{query} = $self->_recurse( 'query', $p->{query} );
+                my $no = delete $p->{no_match_query};
+                if ($no) {
+                    $p->{no_match_query}
+                        = $no =~ /^(?:all|none)$/
+                        ? $no
+                        : $self->_recurse( 'query', $no );
+                }
+                return { indices => $p };
+            },
+        }
+    );
+}
+
+#===================================
 sub _query_unary_nested {
 #===================================
     my ( $self, $v ) = @_;
@@ -2765,12 +2793,35 @@ or:
 
 See L<Geo Polygon Filter|http://www.elasticsearch.org/guide/reference/query-dsl/geo-polygon-filter.html>
 
-=head1 TYPE/ID
+=head1 INDEX/TYPE/ID
 
-The C<_id> field is not indexed by default, and thus isn't
-available for normal queries or filters.
+=head2 -indices
+
+*** Query context only ***
+
+To run a different query depending on the index name, you can use the
+C<-indices> query:
+
+    {
+        -indices => {
+            indices         => 'one' | ['one','two],
+            query           => { status => 'active' },
+            no_match_query  => 'all' | 'none' | { another => query }
+        }
+    }
+
+The `no_match_query` will be run on any indices which don't appear in the
+specified list.  It defaults to C<all>, but can be set to C<none> or to
+a full query.
+
+See L<Indices Query|https://github.com/elasticsearch/elasticsearch/issues/1416>
+and L<no_match_query|https://github.com/elasticsearch/elasticsearch/issues/1492>
+for details.
 
 =head2 -ids
+
+The C<_id> field is not indexed by default, and thus isn't
+available for normal queries or filters
 
 Returns docs with the matching C<_id> or C<_type>/C<_id> combination:
 
