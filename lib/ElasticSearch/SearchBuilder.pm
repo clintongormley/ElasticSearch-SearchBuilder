@@ -1547,7 +1547,7 @@ L<ElasticSearch::SearchBuilder> is an L<SQL::Abstract>-like query language
 which exposes the full power of the query DSL, but in a more compact,
 Perlish way.
 
-B<This module is currently Beta - the API might yet change.> If you have
+B<This module is considered stable.> If you have
 suggestions for improvements to the API or the documenation, please
 contact me.
 
@@ -1804,7 +1804,7 @@ element of the array ref C<-and>:
     }
 
 However, the first element in an array ref which is used as the value for
-a field operator (see </"FIELD OPERATORS">) is not special:
+a field operator (see L</"FIELD OPERATORS">) is not special:
 
     # WRONG
     { tags => { '=' => [ '-and','perl','python' ] }}
@@ -1906,7 +1906,7 @@ All word operators may be negated by adding C<not_> to the beginning, eg:
 =head2 UNARY OPERATORS
 
 There are other operators which don't fit this
-C<< { field => { op => value}} >>model.
+C<< { field => { op => value }} >> model.
 
 For instance:
 
@@ -3193,8 +3193,6 @@ for more about text queries.
 Clinton Gormley, C<< <drtech at cpan.org> >>
 
 =head1 BUGS
-
-This is a beta module, so the API may well change in the future.
 
 If you have any suggestions for improvements, or find any bugs, please report
 them to L<https://github.com/clintongormley/ElasticSearch-SearchBuilder/issues>.
