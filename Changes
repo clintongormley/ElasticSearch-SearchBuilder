@@ -1,5 +1,18 @@
 Revision history for ElasticSearch::SearchBuilder
 
+0.12    2011-02-15
+        Fix version reported in POD
+
+0.11    2011-02-15
+        Filter/queries now accept raw query DSL as a HASH-ref-ref
+        Added -indices
+        Added -cache_key
+        Added -custom_boost
+        Added the 'type' parameter to geo_bounding_box
+        Added 'minimum_number_should_match' to query_strings
+        -type now correctly supports multiple types
+        Switched from Module::Build to EUMM
+
 0.10    2011-10-17
         Fixed a bug in _hash_params which was disallowing a parameter of "0"
 

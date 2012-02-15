@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Scalar::Util ();
 
-our $VERSION = '0.10';
+our $VERSION = '0.12';
 
 my %SPECIAL_OPS = (
     query => {
@@ -1547,9 +1547,9 @@ ElasticSearch::SearchBuilder - A Perlish compact query language for ElasticSearc
 
 =head1 VERSION
 
-Version 0.08
+Version 0.12
 
-Compatible with ElasticSearch version 0.17.5
+Compatible with ElasticSearch version 0.19.0RC2
 
 =cut
 
