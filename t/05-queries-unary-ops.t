@@ -536,6 +536,26 @@ test_queries(
 
 );
 
+test_queries(
+    'UNARY OPERATOR: -custom_boost',
+
+    'custom_boost: V',
+    { -custom_boost => 'v' },
+    qr/HASHREF/,
+
+    'custom_boost: {}',
+    {   -custom_boost => {
+            query        => { k => 'v' },
+            boost_factor => 3
+        }
+    },
+    {   custom_boost_factor => {
+            query        => { text => { k => 'v' } },
+            boost_factor => 3
+        }
+    },
+);
+
 for my $op (qw(-dis_max -dismax)) {
     test_queries(
         "UNARY OPERATOR: $op",

@@ -728,6 +728,23 @@ sub _query_unary_boosting {
 }
 
 #===================================
+sub _query_unary_custom_boost {
+#===================================
+    my ( $self, $v ) = @_;
+    return $self->_SWITCH_refkind(
+        "Unary query -custom_boost",
+        $v,
+        {   HASHREF => sub {
+                my $p = $self->_hash_params( 'custom_boost', $v,
+                    [ 'query', 'boost_factor' ] );
+                $p->{query} = $self->_recurse( 'query', $p->{query} );
+                return { custom_boost_factor => $p };
+            },
+        }
+    );
+}
+
+#===================================
 sub _query_unary_indices {
 #===================================
     my ( $self, $v ) = @_;
@@ -2548,6 +2565,21 @@ but the results are "less relevant".
 
 See L<Boosting Query|http://www.elasticsearch.org/guide/reference/query-dsl/boosting-query.html>
 
+=head2 -custom_boost
+
+The C<custom_boost> query allows you to multiply the scores of another query
+by the specified boost factor. This is a bit different from a standard C<boost>,
+which is normalized.
+
+    {
+        -custom_boost => {
+            query           => { title => 'foo' },
+            boost_factor    => 3
+        }
+    }
+
+See L<Custom Boost Factor Query|http://www.elasticsearch.org/guide/reference/query-dsl/custom-boost-factor-query.html>.
+
 =head1 NESTED QUERIES/FILTERS
 
 Nested queries/filters allow you to run queries/filters on nested docs.
@@ -2647,7 +2679,7 @@ can be cached.
     {
         -custom_filters_score => {
             query       => { foo => 'bar' },
-            score_mode  => 'first|max|total|avg',       # default 'first',
+            score_mode  => 'first|max|total|avg|min|multiply', # default 'first'
             filters     => [
                 {
                     filter => { tag => 'perl' },
