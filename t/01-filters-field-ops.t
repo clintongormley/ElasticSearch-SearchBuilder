@@ -111,6 +111,18 @@ for my $op (qw(= term terms)) {
                 { missing => { field => 'k' } },
             ]
         },
+
+        'K: {VV,ex}',
+        { k => { $op => { value => [ 1, 2 ], execution => 'bool' } } },
+        {   terms => {
+                k         => [ 1, 2 ],
+                execution => 'bool'
+            }
+        },
+
+        'K: {V,ex}',
+        { k    => { $op => { value => [1], execution => 'bool' } } },
+        { term => { k   => 1 } },
     );
 }
 
@@ -162,6 +174,7 @@ for my $op (qw(!= <> not_term not_terms)) {
                 }
             }
         },
+
     );
 }
 

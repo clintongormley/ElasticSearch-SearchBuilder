@@ -1253,6 +1253,20 @@ sub _filter_field_terms {
                 }
                 return $self->_join_clauses( 'filter', 'or', \@filters );
             },
+            HASHREF => sub {
+                my $v = delete $val->{value};
+                $v = $v->[0] if ref $v eq 'ARRAY' and @$v < 2;
+                croak "Missing 'value' param in 'terms' filter"
+                    unless defined $v;
+
+                if ( ref $v eq 'ARRAY' ) {
+                    my $p
+                        = $self->_hash_params( $op, $val, [], ['execution'] );
+                    $p->{$k} = $v;
+                    return { terms => $p };
+                }
+                return { term => { $k => $v } };
+            },
         }
     );
 }
@@ -2134,6 +2148,18 @@ C<< <> >> and C<!=> are synonyms:
     # Field foo contains neither 'bar' nor 'baz'
     { foo => { '!=' => ['bar','baz'] }}
     { foo => { '<>' => ['bar','baz'] }}
+
+The C<terms> filter can take an C<execution> parameter which affects how the
+filter of multiple terms is executed and cached.
+
+For instance:
+
+    { foo => {
+        -terms => {
+            value       => ['foo','bar'],
+            execution   => 'bool'
+        }
+    }}
 
 See L<Term Filter|http://www.elasticsearch.org/guide/reference/query-dsl/term-filter.html>
 and L<Terms Filter|http://www.elasticsearch.org/guide/reference/query-dsl/terms-filter.html>
