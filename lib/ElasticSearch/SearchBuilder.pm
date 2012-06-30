@@ -1013,7 +1013,7 @@ sub _query_field_wildcard {
 sub _query_field_fuzzy {
 #===================================
     shift->_query_field_generic( @_, 'fuzzy', ['value'],
-        [qw(boost min_similarity max_expansions prefix_length)] );
+        [qw(boost min_similarity max_expansions prefix_length rewrite)] );
 }
 
 #===================================
@@ -2571,7 +2571,8 @@ where similarity is based on the Levenshtein (edit distance) algorithm:
             value           => 'fonbaz',
             boost           => 2.0,
             min_similarity  => 0.2,
-            max_expansions  => 10
+            max_expansions  => 10,
+            rewrite         => 'constant_score_default',
         }
     }}
 

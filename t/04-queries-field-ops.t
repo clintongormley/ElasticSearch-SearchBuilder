@@ -860,7 +860,8 @@ for my $op (qw(fuzzy)) {
                     boost          => 1,
                     min_similarity => 0.5,
                     max_expansions => 10,
-                    prefix_length  => 2
+                    prefix_length  => 2,
+                    rewrite        => 'constant_score_default',
                 }
             }
         },
@@ -870,7 +871,8 @@ for my $op (qw(fuzzy)) {
                     boost          => 1,
                     min_similarity => 0.5,
                     max_expansions => 10,
-                    prefix_length  => 2
+                    prefix_length  => 2,
+                    rewrite        => 'constant_score_default',
                 }
             }
         },
@@ -921,7 +923,8 @@ for my $op (qw(not_fuzzy)) {
                     boost          => 1,
                     min_similarity => 0.5,
                     max_expansions => 10,
-                    prefix_length  => 2
+                    prefix_length  => 2,
+                    rewrite        => 'constant_score_default',
                 }
             }
         },
@@ -933,7 +936,8 @@ for my $op (qw(not_fuzzy)) {
                                 boost          => 1,
                                 min_similarity => 0.5,
                                 max_expansions => 10,
-                                prefix_length  => 2
+                                prefix_length  => 2,
+                                rewrite        => 'constant_score_default',
                             }
                         }
                     }
@@ -1557,7 +1561,7 @@ sub test_queries {
             eval {
                 eq_or_diff scalar $a->query($in), { query => $out }, $name;
                 1;
-            }
+                }
                 or die "*** FAILED TEST $name:***\n$@";
         }
     }
