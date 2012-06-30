@@ -287,11 +287,16 @@ for my $op (qw(-qs -query_string)) {
                 fields                       => [ 'foo', 'bar' ],
                 fuzzy_min_sim                => 0.5,
                 fuzzy_prefix_length          => 2,
+                fuzzy_rewrite                => 'constant_score_default',
+                fuzzy_max_expansions         => 1024,
+                lenient                      => 1,
                 lowercase_expanded_terms     => 1,
                 minimum_number_should_match  => 3,
                 phrase_slop                  => 10,
                 tie_breaker                  => 1.5,
-                use_dis_max                  => 1
+                use_dis_max                  => 1,
+                quote_analyzer               => 'standard',
+                quote_field_suffix           => '.unstemmed'
             }
         },
         {   query_string => {
@@ -306,11 +311,16 @@ for my $op (qw(-qs -query_string)) {
                 fields                       => [ 'foo', 'bar' ],
                 fuzzy_min_sim                => 0.5,
                 fuzzy_prefix_length          => 2,
+                fuzzy_rewrite                => 'constant_score_default',
+                lenient                      => 1,
+                fuzzy_max_expansions         => 1024,
                 lowercase_expanded_terms     => 1,
                 minimum_number_should_match  => 3,
                 phrase_slop                  => 10,
                 tie_breaker                  => 1.5,
-                use_dis_max                  => 1
+                use_dis_max                  => 1,
+                quote_analyzer               => 'standard',
+                quote_field_suffix           => '.unstemmed'
             }
         },
     );
@@ -345,11 +355,16 @@ for my $op (qw(-not_qs -not_query_string)) {
                 fields                       => [ 'foo', 'bar' ],
                 fuzzy_min_sim                => 0.5,
                 fuzzy_prefix_length          => 2,
+                fuzzy_rewrite                => 'constant_score_default',
+                fuzzy_max_expansions         => 1024,
+                lenient                      => 1,
                 lowercase_expanded_terms     => 1,
                 minimum_number_should_match  => 3,
                 phrase_slop                  => 10,
                 tie_breaker                  => 1.5,
-                use_dis_max                  => 1
+                use_dis_max                  => 1,
+                quote_analyzer               => 'standard',
+                quote_field_suffix           => '.unstemmed'
             }
         },
         {   bool => {
@@ -366,11 +381,16 @@ for my $op (qw(-not_qs -not_query_string)) {
                             fields                       => [ 'foo', 'bar' ],
                             fuzzy_min_sim                => 0.5,
                             fuzzy_prefix_length          => 2,
-                            lowercase_expanded_terms     => 1,
-                            minimum_number_should_match  => 3,
-                            phrase_slop                  => 10,
-                            tie_breaker                  => 1.5,
-                            use_dis_max                  => 1
+                            fuzzy_rewrite        => 'constant_score_default',
+                            fuzzy_max_expansions => 1024,
+                            lenient              => 1,
+                            lowercase_expanded_terms    => 1,
+                            minimum_number_should_match => 3,
+                            phrase_slop                 => 10,
+                            tie_breaker                 => 1.5,
+                            use_dis_max                 => 1,
+                            quote_analyzer              => 'standard',
+                            quote_field_suffix          => '.unstemmed'
                         }
                     }
                 ]

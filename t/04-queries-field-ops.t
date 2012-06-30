@@ -1425,12 +1425,17 @@ for my $op (qw(query_string qs)) {
                     enable_position_increments   => 1,
                     fuzzy_prefix_length          => 2,
                     fuzzy_min_sim                => 0.5,
+                    fuzzy_rewrite                => 'constant_score_default',
+                    fuzzy_max_expansions         => 1024,
+                    lenient                      => 1,
                     phrase_slop                  => 10,
                     boost                        => 1,
                     analyze_wildcard             => 1,
                     auto_generate_phrase_queries => 0,
                     rewrite                      => 'constant_score_default',
                     minimum_number_should_match  => 3,
+                    quote_analyzer               => 'standard',
+                    quote_field_suffix           => '.unstemmed'
 
                 }
             }
@@ -1445,12 +1450,17 @@ for my $op (qw(query_string qs)) {
                     enable_position_increments   => 1,
                     fuzzy_prefix_length          => 2,
                     fuzzy_min_sim                => 0.5,
+                    fuzzy_rewrite                => 'constant_score_default',
+                    fuzzy_max_expansions         => 1024,
+                    lenient                      => 1,
                     phrase_slop                  => 10,
                     boost                        => 1,
                     analyze_wildcard             => 1,
                     auto_generate_phrase_queries => 0,
                     rewrite                      => 'constant_score_default',
                     minimum_number_should_match  => 3,
+                    quote_analyzer               => 'standard',
+                    quote_field_suffix           => '.unstemmed'
                 }
             }
         },
@@ -1510,11 +1520,16 @@ for my $op (qw(not_query_string not_qs)) {
                     enable_position_increments   => 1,
                     fuzzy_prefix_length          => 2,
                     fuzzy_min_sim                => 0.5,
+                    fuzzy_rewrite                => 'constant_score_default',
+                    fuzzy_max_expansions         => 1024,
+                    lenient                      => 1,
                     phrase_slop                  => 10,
                     boost                        => 1,
                     analyze_wildcard             => 1,
                     auto_generate_phrase_queries => 0,
                     rewrite                      => 'constant_score_default',
+                    quote_analyzer               => 'standard',
+                    quote_field_suffix           => '.unstemmed'
                 }
             }
         },
@@ -1522,19 +1537,24 @@ for my $op (qw(not_query_string not_qs)) {
                 must_not => [ {
                         field => {
                             k => {
-                                query                        => 'v',
-                                default_operator             => 'AND',
-                                analyzer                     => 'default',
-                                allow_leading_wildcard       => 0,
-                                lowercase_expanded_terms     => 1,
-                                enable_position_increments   => 1,
-                                fuzzy_prefix_length          => 2,
-                                fuzzy_min_sim                => 0.5,
+                                query                      => 'v',
+                                default_operator           => 'AND',
+                                analyzer                   => 'default',
+                                allow_leading_wildcard     => 0,
+                                lowercase_expanded_terms   => 1,
+                                enable_position_increments => 1,
+                                fuzzy_prefix_length        => 2,
+                                fuzzy_min_sim              => 0.5,
+                                fuzzy_rewrite => 'constant_score_default',
+                                fuzzy_max_expansions         => 1024,
+                                lenient                      => 1,
                                 phrase_slop                  => 10,
                                 boost                        => 1,
                                 analyze_wildcard             => 1,
                                 auto_generate_phrase_queries => 0,
-                                rewrite => 'constant_score_default',
+                                rewrite        => 'constant_score_default',
+                                quote_analyzer => 'standard',
+                                quote_field_suffix => '.unstemmed'
                             }
                         }
                     }
