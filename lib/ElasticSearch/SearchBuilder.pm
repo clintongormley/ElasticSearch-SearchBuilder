@@ -25,22 +25,22 @@ my %SPECIAL_OPS = (
         '*'   => [ 'wildcard',           0 ],
     },
     filter => {
-        '='           => [ 'terms',  0 ],
-        '!='          => [ 'terms',  1 ],
-        '<>'          => [ 'terms',  1 ],
-        '>'           => [ 'range',  0 ],
-        '>='          => [ 'range',  0 ],
-        '<'           => [ 'range',  0 ],
-        '<='          => [ 'range',  0 ],
-        'gt'          => [ 'range',  0 ],
-        'lt'          => [ 'range',  0 ],
-        'gte'         => [ 'range',  0 ],
-        'lte'         => [ 'range',  0 ],
-        '^'           => [ 'prefix', 0 ],
-        'exists'      => [ 'exists', 0 ],
-        'missing'     => [ 'exists', 0 ],
-        'not_exists'  => [ 'exists', 0 ],
-        'not_missing' => [ 'exists', 0 ],
+        '='           => [ 'terms',   0 ],
+        '!='          => [ 'terms',   1 ],
+        '<>'          => [ 'terms',   1 ],
+        '>'           => [ 'range',   0 ],
+        '>='          => [ 'range',   0 ],
+        '<'           => [ 'range',   0 ],
+        '<='          => [ 'range',   0 ],
+        'gt'          => [ 'range',   0 ],
+        'lt'          => [ 'range',   0 ],
+        'gte'         => [ 'range',   0 ],
+        'lte'         => [ 'range',   0 ],
+        '^'           => [ 'prefix',  0 ],
+        'exists'      => [ 'exists',  0 ],
+        'not_exists'  => [ 'exists',  0 ],
+        'missing'     => [ 'missing', 0 ],
+        'not_missing' => [ 'missing', 1 ],
     }
 );
 
@@ -797,8 +797,22 @@ sub _query_unary_nested {
 #======================================================================
 
 #===================================
-sub _filter_unary_missing { shift->_filter_unary_exists( @_, 'missing' ) }
+sub _filter_unary_missing {
 #===================================
+    my ( $self, $v ) = @_;
+
+    return $self->_SWITCH_refkind(
+        "Unary filter -missing",
+        $v,
+        {   SCALAR  => sub { return { missing => { field => $v } } },
+            HASHREF => sub {
+                my $p = $self->_hash_params( 'missing', $v, ['field'],
+                    [ 'existence', 'null_value' ] );
+                return { missing => $p };
+            },
+        },
+    );
+}
 
 #===================================
 sub _filter_unary_exists {
@@ -1345,6 +1359,29 @@ sub _filter_field_exists {
                 if ( $op eq 'missing' ) { $val = !$val }
                 return { ( $val ? 'exists' : 'missing' ) => { field => $k } };
             },
+        }
+    );
+}
+
+#===================================
+sub _filter_field_missing {
+#===================================
+    my ( $self, $k, $op, $val ) = @_;
+    $val ||= 0;
+
+    return $self->_SWITCH_refkind(
+        "Filter field operator -$op",
+        $val,
+        {   SCALAR => sub {
+                return { ( $val ? 'missing' : 'exists' ) => { field => $k } };
+            },
+            HASHREF => sub {
+                my $p = $self->_hash_params( 'missing', $val, [],
+                    [ 'null_value', 'existence' ] );
+                $p->{field} = $k;
+                return { missing => $p };
+            },
+
         }
     );
 }
@@ -2233,6 +2270,25 @@ particular field exists and has a value, or is undefined or has no value:
     { -missing => 'foo'           }
     { foo      => undef           }
 
+The C<missing> filter also supports the C<null_value> and C<existence>
+parameters:
+
+    {
+        foo     => {
+            missing => {
+                null_value => 1,
+                existence  => 1,
+            }
+        }
+    }
+
+OR
+
+    { -missing => {
+        field      => 'foo',
+        null_value => 1,
+        existence  => 1,
+    }}
 See L<Missing Filter|http://www.elasticsearch.org/guide/reference/query-dsl/missing-filter.html>
 and L<Exists Filter|http://www.elasticsearch.org/guide/reference/query-dsl/exists-filter.html>
 

@@ -384,6 +384,10 @@ test_filters(
     { k      => { missing => undef } },
     { exists => { field   => 'k' } },
 
+    "K: not_missing HASH",
+    { k => { missing => { null_value => 1, existence => 1 } } },
+    { missing => { field => 'k', null_value => 1, existence => 1 } },
+
     "K: not_exists 1",
     { k       => { not_exists => 1 } },
     { missing => { field      => 'k' } },
@@ -397,16 +401,25 @@ test_filters(
     { exists => { field      => 'k' } },
 
     "K: not_missing 1",
-    { k      => { not_missing => 1 } },
-    { exists => { field       => 'k' } },
+    { k   => { not_missing => 1 } },
+    { not => { filter      => { missing => { field => 'k' } } } },
 
     "K: not_missing 0",
-    { k       => { not_missing => 0 } },
-    { missing => { field       => 'k' } },
+    { k   => { not_missing => 0 } },
+    { not => { filter      => { exists => { field => 'k' } } } },
 
     "K: not_missing UNDEF",
-    { k       => { not_missing => undef } },
-    { missing => { field       => 'k' } },
+    { k   => { not_missing => undef } },
+    { not => { filter      => { exists => { field => 'k' } } } },
+
+    "K: not_missing HASH",
+    { k => { not_missing => { null_value => 1, existence => 1 } } },
+    {   not => {
+            filter => {
+                missing => { field => 'k', null_value => 1, existence => 1 }
+            }
+        }
+    },
 
 );
 
@@ -648,7 +661,7 @@ sub test_filters {
             eval {
                 eq_or_diff scalar $a->filter($in), { filter => $out }, $name;
                 1;
-            }
+                }
                 or die "*** FAILED TEST $name:***\n$@";
         }
     }

@@ -45,6 +45,11 @@ test_filters(
     "missing: k",
     { -missing => 'k' },
     { missing => { field => 'k' } },
+
+    "missing: %V",
+    { -missing => { field => 'k', null_value => 1, existence => 1 } },
+    { missing  => { field => 'k', null_value => 1, existence => 1 } },
+
 );
 
 test_filters(
@@ -357,7 +362,7 @@ sub test_filters {
             eval {
                 eq_or_diff scalar $a->filter($in), { filter => $out }, $name;
                 1;
-            }
+                }
                 or die "*** FAILED TEST $name:***\n$@";
         }
     }
