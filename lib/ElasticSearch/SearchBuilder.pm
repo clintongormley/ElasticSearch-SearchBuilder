@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Scalar::Util ();
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 my %SPECIAL_OPS = (
     query => {
@@ -1021,8 +1021,13 @@ sub _query_field_fuzzy {
 #===================================
 sub _query_field_text {
 #===================================
-    shift->_query_field_generic( @_, 'text', ['query'],
-        [qw(boost operator analyzer fuzziness max_expansions prefix_length)]
+    shift->_query_field_generic(
+        @_, 'text',
+        ['query'],
+        [   qw(boost operator analyzer
+                fuzziness fuzzy_rewrite max_expansions
+                minimum_should_match prefix_length)
+        ]
     );
 }
 
@@ -2087,13 +2092,15 @@ These operators all generate C<text> queries:
     # Same as above but with extra parameters:
     { title => {
         text => {
-            query          => 'Perl is GREAT',
-            boost          => 2.0,
-            operator       => 'and',
-            analyzer       => 'default',
-            fuzziness      => 0.5,
-            max_expansions => 100,
-            prefix_length  => 2,
+            query                => 'Perl is GREAT',
+            boost                => 2.0,
+            operator             => 'and',
+            analyzer             => 'default',
+            fuzziness            => 0.5,
+            fuzzy_rewrite        => 'constant_score_default',
+            max_expansions       => 100,
+            minimum_should_match => 2,
+            prefix_length        => 2,
         }
     }}
 
@@ -2295,6 +2302,7 @@ OR
         null_value => 1,
         existence  => 1,
     }}
+
 See L<Missing Filter|http://www.elasticsearch.org/guide/reference/query-dsl/missing-filter.html>
 and L<Exists Filter|http://www.elasticsearch.org/guide/reference/query-dsl/exists-filter.html>
 

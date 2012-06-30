@@ -117,25 +117,29 @@ for my $op (qw(= text)) {
         'K: $op {}',
         {   k => {
                 $op => {
-                    query          => 'v',
-                    boost          => 1,
-                    operator       => 'AND',
-                    analyzer       => 'default',
-                    fuzziness      => 0.5,
-                    max_expansions => 10,
-                    prefix_length  => 2,
+                    query                => 'v',
+                    boost                => 1,
+                    operator             => 'AND',
+                    analyzer             => 'default',
+                    fuzzy_rewrite        => 'constant_score_default',
+                    fuzziness            => 0.5,
+                    max_expansions       => 10,
+                    minimum_should_match => 2,
+                    prefix_length        => 2,
                 }
             }
         },
         {   text => {
                 k => {
-                    analyzer       => 'default',
-                    boost          => 1,
-                    fuzziness      => '0.5',
-                    max_expansions => 10,
-                    operator       => 'AND',
-                    prefix_length  => 2,
-                    query          => 'v'
+                    analyzer             => 'default',
+                    boost                => 1,
+                    fuzziness            => '0.5',
+                    fuzzy_rewrite        => 'constant_score_default',
+                    max_expansions       => 10,
+                    minimum_should_match => 2,
+                    operator             => 'AND',
+                    prefix_length        => 2,
+                    query                => 'v'
                 }
             }
         },
@@ -181,13 +185,15 @@ for my $op (qw(!= <> not_text)) {
         'K: $op {}',
         {   k => {
                 $op => {
-                    query          => 'v',
-                    boost          => 1,
-                    operator       => 'AND',
-                    analyzer       => 'default',
-                    fuzziness      => 0.5,
-                    max_expansions => 10,
-                    prefix_length  => 2,
+                    query                => 'v',
+                    boost                => 1,
+                    operator             => 'AND',
+                    analyzer             => 'default',
+                    fuzziness            => 0.5,
+                    fuzzy_rewrite        => 'constant_score_default',
+                    max_expansions       => 10,
+                    minimum_should_match => 2,
+                    prefix_length        => 2,
                 }
             }
         },
@@ -198,10 +204,12 @@ for my $op (qw(!= <> not_text)) {
                                 analyzer       => 'default',
                                 boost          => 1,
                                 fuzziness      => '0.5',
+                                fuzzy_rewrite  => 'constant_score_default',
                                 max_expansions => 10,
-                                operator       => 'AND',
-                                prefix_length  => 2,
-                                query          => 'v'
+                                minimum_should_match => 2,
+                                operator             => 'AND',
+                                prefix_length        => 2,
+                                query                => 'v'
                             }
                         }
                     }
