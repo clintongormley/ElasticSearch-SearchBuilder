@@ -640,7 +640,8 @@ sub _query_unary_custom_filters_score {
         {   HASHREF => sub {
                 my $p = $self->_hash_params(
                     'custom_filters_score', $v,
-                    [ 'query', 'filters' ], ['score_mode']
+                    [ 'query',      'filters' ],
+                    [ 'score_mode', 'max_boost' ]
                 );
                 $p->{query} = $self->_recurse( 'query', $p->{query} );
                 my $raw = $p->{filters};
@@ -2761,6 +2762,7 @@ can be cached.
         -custom_filters_score => {
             query       => { foo => 'bar' },
             score_mode  => 'first|max|total|avg|min|multiply', # default 'first'
+            max_boost   => 10,
             filters     => [
                 {
                     filter => { tag => 'perl' },

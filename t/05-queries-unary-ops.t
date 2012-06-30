@@ -642,12 +642,14 @@ test_queries(
             query   => { k      => 'v' },
             filters => { filter => { k => 'v' }, boost => 2 },
             score_mode => 'first',
+            max_boost  => 10
         }
     },
     {   custom_filters_score => {
             query => { text => { k => 'v' } },
             filters => [ { filter => { term => { k => 'v' } }, boost => 2 } ],
-            score_mode => 'first'
+            score_mode => 'first',
+            max_boost  => 10
         }
     },
 
@@ -663,6 +665,7 @@ test_queries(
                 }
             ],
             score_mode => 'first',
+            max_boost  => 10
         }
     },
     {   custom_filters_score => {
@@ -675,7 +678,8 @@ test_queries(
                     params => { foo => 1 }
                 }
             ],
-            score_mode => 'first'
+            score_mode => 'first',
+            max_boost  => 10
         }
     },
 );
@@ -925,7 +929,7 @@ sub test_queries {
             eval {
                 eq_or_diff scalar $a->query($in), { query => $out }, $name;
                 1;
-            }
+                }
                 or die "*** FAILED TEST $name:***\n$@";
         }
     }
