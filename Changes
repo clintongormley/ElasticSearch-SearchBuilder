@@ -1,4 +1,12 @@
 Revision history for ElasticSearch::SearchBuilder
+0.14    2012-06-30
+        Added 'null_value' and 'existence' to the -missing filter and op
+        Added 'max_boost' to -custom_filters_score
+        Added 'rewrite' to -fuzzy
+        Added 'fuzzy_rewrite', 'fuzzy_max_expansions', 'lenient',
+              'quote_analyzer','quote_field_prefix' to -qs and -field
+        Added 'fuzzy_rewrite' and 'minimum_should_match' to text queries
+
 0.13    2012-03-17
         Added support for 'execution' param to -terms filter
 
