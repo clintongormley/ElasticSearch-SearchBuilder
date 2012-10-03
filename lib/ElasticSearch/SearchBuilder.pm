@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Scalar::Util ();
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 my %SPECIAL_OPS = (
     query => {
@@ -106,7 +106,7 @@ sub _top_HASHREF {
     my ( $self, $type, $params ) = @_;
 
     my ( @clauses, $filter );
-
+    $params = {%$params};
     for my $k ( sort keys %$params ) {
         my $v = $params->{$k};
 
@@ -646,10 +646,13 @@ sub _query_unary_custom_filters_score {
                     [ 'score_mode', 'max_boost' ]
                 );
                 $p->{query} = $self->_recurse( 'query', $p->{query} );
-                my $raw = $p->{filters};
-                $raw = [$raw] unless ref $raw eq 'ARRAY';
+                my @raw
+                    = ref $p->{filters} eq 'ARRAY'
+                    ? @{ $p->{filters} }
+                    : $p->{filters};
                 my @filters;
-                for my $pf (@$raw) {
+
+                for my $pf (@raw) {
                     $pf = $self->_hash_params( 'custom_filters_score.filters',
                         $pf, ['filter'],
                         [ 'boost', 'script', 'params', 'lang' ] );
@@ -1113,6 +1116,7 @@ sub _query_field_terms {
         $val,
         {   SCALAR  => sub { return { term => { $k => $val } } },
             HASHREF => sub {
+                $val = {%$val};
                 my $v = delete $val->{value};
                 $v = $v->[0] if ref $v eq 'ARRAY' and @$v < 2;
                 croak "Missing 'value' param in 'terms' query"
@@ -1279,7 +1283,9 @@ sub _filter_field_terms {
                 return $self->_join_clauses( 'filter', 'or', \@filters );
             },
             HASHREF => sub {
+                $val = {%$val};
                 my $v = delete $val->{value};
+
                 $v = $v->[0] if ref $v eq 'ARRAY' and @$v < 2;
                 croak "Missing 'value' param in 'terms' filter"
                     unless defined $v;
@@ -1565,7 +1571,7 @@ sub _hash_params {
 
     croak "Op '$op' only accepts a hashref"
         unless ref $val eq 'HASH';
-
+    $val = {%$val};
     my %params;
     for (@$req) {
         my $v = $params{$_} = delete $val->{$_};

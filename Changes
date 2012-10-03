@@ -1,4 +1,8 @@
 Revision history for ElasticSearch::SearchBuilder
+0.15    2012-10-03
+        SearchBuilder was destroying the original hashrefs and arrayrefs for
+        certain clauses. Now makes copies
+
 0.14    2012-06-30
         Added 'null_value' and 'existence' to the -missing filter and op
         Added 'max_boost' to -custom_filters_score
