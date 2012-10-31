@@ -123,9 +123,11 @@ for my $op (qw(= match)) {
                     analyzer             => 'default',
                     fuzzy_rewrite        => 'constant_score_default',
                     fuzziness            => 0.5,
+                    lenient              => 1,
                     max_expansions       => 10,
                     minimum_should_match => 2,
                     prefix_length        => 2,
+                    rewrite              => 'constant_score_default',
                 }
             }
         },
@@ -135,11 +137,13 @@ for my $op (qw(= match)) {
                     boost                => 1,
                     fuzziness            => '0.5',
                     fuzzy_rewrite        => 'constant_score_default',
+                    lenient              => 1,
                     max_expansions       => 10,
                     minimum_should_match => 2,
                     operator             => 'AND',
                     prefix_length        => 2,
-                    query                => 'v'
+                    query                => 'v',
+                    rewrite              => 'constant_score_default',
                 }
             }
         },
@@ -191,9 +195,11 @@ for my $op (qw(!= <> not_match)) {
                     analyzer             => 'default',
                     fuzziness            => 0.5,
                     fuzzy_rewrite        => 'constant_score_default',
+                    lenient              => 1,
                     max_expansions       => 10,
                     minimum_should_match => 2,
                     prefix_length        => 2,
+                    rewrite              => 'constant_score_default',
                 }
             }
         },
@@ -205,11 +211,13 @@ for my $op (qw(!= <> not_match)) {
                                 boost          => 1,
                                 fuzziness      => '0.5',
                                 fuzzy_rewrite  => 'constant_score_default',
+                                lenient        => 1,
                                 max_expansions => 10,
                                 minimum_should_match => 2,
                                 operator             => 'AND',
                                 prefix_length        => 2,
-                                query                => 'v'
+                                query                => 'v',
+                                rewrite => 'constant_score_default',
                             }
                         }
                     }
@@ -263,6 +271,7 @@ for my $op (qw(== phrase match_phrase)) {
                     query    => 'v',
                     boost    => 1,
                     analyzer => 'default',
+                    lenient  => 1,
                     slop     => 3,
                 }
             }
@@ -272,6 +281,7 @@ for my $op (qw(== phrase match_phrase)) {
                     analyzer => 'default',
                     boost    => 1,
                     query    => 'v',
+                    lenient  => 1,
                     slop     => 3,
                 }
             }
@@ -323,6 +333,7 @@ for my $op (qw(not_phrase not_match_phrase)) {
                     query    => 'v',
                     boost    => 1,
                     analyzer => 'default',
+                    lenient  => 1,
                     slop     => 3,
                 }
             }
@@ -334,6 +345,7 @@ for my $op (qw(not_phrase not_match_phrase)) {
                                 analyzer => 'default',
                                 boost    => 1,
                                 query    => 'v',
+                                lenient  => 1,
                                 slop     => 3,
                             }
                         }
@@ -491,6 +503,7 @@ for my $op (qw(^ phrase_prefix match_phrase_prefix)) {
                     query          => 'v',
                     boost          => 1,
                     analyzer       => 'default',
+                    lenient        => 1,
                     slop           => 10,
                     max_expansions => 10
                 }
@@ -501,6 +514,7 @@ for my $op (qw(^ phrase_prefix match_phrase_prefix)) {
                     query          => 'v',
                     boost          => 1,
                     analyzer       => 'default',
+                    lenient        => 1,
                     slop           => 10,
                     max_expansions => 10
 
@@ -559,6 +573,7 @@ for my $op (qw(not_phrase_prefix not_match_phrase_prefix)) {
                     query          => 'v',
                     boost          => 1,
                     analyzer       => 'default',
+                    lenient        => 1,
                     slop           => 10,
                     max_expansions => 10
                 }
@@ -571,6 +586,7 @@ for my $op (qw(not_phrase_prefix not_match_phrase_prefix)) {
                                 query          => 'v',
                                 boost          => 1,
                                 analyzer       => 'default',
+                                lenient        => 1,
                                 slop           => 10,
                                 max_expansions => 10
 

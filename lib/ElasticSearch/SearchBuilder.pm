@@ -1051,7 +1051,7 @@ sub _query_field_match {
         ['query'],
         [   qw(boost operator analyzer
                 fuzziness fuzzy_rewrite rewrite max_expansions
-                minimum_should_match prefix_length type)
+                minimum_should_match prefix_length lenient)
         ]
     );
 }
@@ -1065,14 +1065,14 @@ sub _query_field_phrase_prefix { shift->_query_field_match_phrase_prefix(@_) }
 sub _query_field_match_phrase {
 #===================================
     shift->_query_field_generic( @_, 'match_phrase', ['query'],
-        [qw(boost slop analyzer)] );
+        [qw(boost analyzer slop lenient)] );
 }
 
 #===================================
 sub _query_field_match_phrase_prefix {
 #===================================
     shift->_query_field_generic( @_, 'match_phrase_prefix', ['query'],
-        [qw(boost analyzer slop max_expansions)] );
+        [qw(boost analyzer slop lenient max_expansions)] );
 }
 
 #===================================
@@ -2126,6 +2126,7 @@ These operators all generate C<match> queries:
             analyzer             => 'default',
             fuzziness            => 0.5,
             fuzzy_rewrite        => 'constant_score_default',
+            lenient              => 1,
             max_expansions       => 100,
             minimum_should_match => 2,
             prefix_length        => 2,
@@ -2162,6 +2163,7 @@ same order, but further apart:
             slop     => 3,
             analyzer => 'default'
             boost    => 1,
+            lenient  => 1,
     }}
 
 See L<Match Query|http://www.elasticsearch.org/guide/reference/query-dsl/match-query.html>
