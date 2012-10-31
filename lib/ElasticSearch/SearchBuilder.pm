@@ -2431,10 +2431,10 @@ contain one or more of those terms. (See L</"EQUALITY (QUERIES)">).
 =head2 -qs | -query_string | -not_qs | -not_query_string
 
 However, there is a more advanced query string syntax
-(see L<Lucene Query Parser Syntax|http://lucene.apache.org/java/3_3_0/queryparsersyntax.html>)
+(see L<Lucene Query Parser Syntax|http://lucene.apache.org/core/old_versioned_docs/versions/3_5_0/queryparsersyntax.html>)
 which understands search terms like:
 
-   perl AND python tag:recent "must have this phrase" -apple
+   perl AND python tag:recent "this exact phrase" -apple
 
 It is useful for "power" users, but has the disadvantage that, if
 the syntax is incorrect, ES throws an error.  You can use
@@ -2818,9 +2818,9 @@ with the number C<5>
 However, if C<tags> is mapped as a C<nested> field, then you can run queries
 or filters on each sub-doc individually.
 
-See L<Nested Mapping|http://github.com/elasticsearch/elasticsearch/issues/1095>,
-L<Nested Type|http://www.elasticsearch.org/guide/reference/mapping/nested-type.html>
-and L<Nested Query|http://www.elasticsearch.org/guide/reference/query-dsl/nested-query.html>
+See L<Nested Type|http://www.elasticsearch.org/guide/reference/mapping/nested-type.html>,
+L<Nested Query|http://www.elasticsearch.org/guide/reference/query-dsl/nested-query.html>
+and L<Nested Filter|http://www.elasticsearch.org/guide/reference/query-dsl/nested-filter.html>
 
 =head2 -nested (QUERY)
 
@@ -2836,7 +2836,7 @@ and L<Nested Query|http://www.elasticsearch.org/guide/reference/query-dsl/nested
         }
     }
 
-See L<Nested Query|http://github.com/elasticsearch/elasticsearch/issues/1095>
+See L<Nested Query|http://www.elasticsearch.org/guide/reference/query-dsl/nested-query.html>
 
 =head2 -nested (FILTER)
 
@@ -2853,7 +2853,7 @@ See L<Nested Query|http://github.com/elasticsearch/elasticsearch/issues/1095>
         }
     }
 
-See L<Nested Filter|http://github.com/elasticsearch/elasticsearch/issues/1102>
+See L<Nested Filter|http://www.elasticsearch.org/guide/reference/query-dsl/nested-filter.html>
 
 =head1 SCRIPTING
 
