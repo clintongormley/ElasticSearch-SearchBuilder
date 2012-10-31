@@ -11,3 +11,4 @@ bench_data.json
 log
 *.bak
 ElasticSearch-Search*
+doc
