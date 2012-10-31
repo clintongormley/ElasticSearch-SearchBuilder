@@ -291,7 +291,7 @@ for my $op (qw(-qs -query_string)) {
                 fuzzy_max_expansions         => 1024,
                 lenient                      => 1,
                 lowercase_expanded_terms     => 1,
-                minimum_number_should_match  => 3,
+                minimum_should_match         => 3,
                 phrase_slop                  => 10,
                 tie_breaker                  => 1.5,
                 use_dis_max                  => 1,
@@ -315,7 +315,7 @@ for my $op (qw(-qs -query_string)) {
                 lenient                      => 1,
                 fuzzy_max_expansions         => 1024,
                 lowercase_expanded_terms     => 1,
-                minimum_number_should_match  => 3,
+                minimum_should_match         => 3,
                 phrase_slop                  => 10,
                 tie_breaker                  => 1.5,
                 use_dis_max                  => 1,
@@ -359,7 +359,7 @@ for my $op (qw(-not_qs -not_query_string)) {
                 fuzzy_max_expansions         => 1024,
                 lenient                      => 1,
                 lowercase_expanded_terms     => 1,
-                minimum_number_should_match  => 3,
+                minimum_should_match         => 3,
                 phrase_slop                  => 10,
                 tie_breaker                  => 1.5,
                 use_dis_max                  => 1,
@@ -384,13 +384,13 @@ for my $op (qw(-not_qs -not_query_string)) {
                             fuzzy_rewrite        => 'constant_score_default',
                             fuzzy_max_expansions => 1024,
                             lenient              => 1,
-                            lowercase_expanded_terms    => 1,
-                            minimum_number_should_match => 3,
-                            phrase_slop                 => 10,
-                            tie_breaker                 => 1.5,
-                            use_dis_max                 => 1,
-                            quote_analyzer              => 'standard',
-                            quote_field_suffix          => '.unstemmed'
+                            lowercase_expanded_terms => 1,
+                            minimum_should_match     => 3,
+                            phrase_slop              => 10,
+                            tie_breaker              => 1.5,
+                            use_dis_max              => 1,
+                            quote_analyzer           => 'standard',
+                            quote_field_suffix       => '.unstemmed'
                         }
                     }
                 ]

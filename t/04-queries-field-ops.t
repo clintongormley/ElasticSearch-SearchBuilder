@@ -1443,7 +1443,7 @@ for my $op (qw(query_string qs)) {
                     analyze_wildcard             => 1,
                     auto_generate_phrase_queries => 0,
                     rewrite                      => 'constant_score_default',
-                    minimum_number_should_match  => 3,
+                    minimum_should_match         => 3,
                     quote_analyzer               => 'standard',
                     quote_field_suffix           => '.unstemmed'
 
@@ -1468,7 +1468,7 @@ for my $op (qw(query_string qs)) {
                     analyze_wildcard             => 1,
                     auto_generate_phrase_queries => 0,
                     rewrite                      => 'constant_score_default',
-                    minimum_number_should_match  => 3,
+                    minimum_should_match         => 3,
                     quote_analyzer               => 'standard',
                     quote_field_suffix           => '.unstemmed'
                 }

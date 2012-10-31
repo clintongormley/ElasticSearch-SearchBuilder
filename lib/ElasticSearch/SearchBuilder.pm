@@ -557,7 +557,7 @@ sub _query_unary_query_string {
                             lowercase_expanded_terms phrase_slop
                             tie_breaker use_dis_max lenient
                             quote_analyzer quote_field_suffix
-                            minimum_number_should_match )
+                            minimum_should_match )
                     ]
                 );
                 return { query_string => $p };
@@ -1070,7 +1070,7 @@ sub _query_field_query_string {
                 phrase_slop boost
                 analyze_wildcard auto_generate_phrase_queries rewrite
                 quote_analyzer quote_field_suffix
-                minimum_number_should_match)
+                minimum_should_match)
         ]
     );
 }
@@ -2355,7 +2355,7 @@ L<ElasticSearch::QueryParser> to fix any syntax errors.
             analyze_wildcard             => 1,
             auto_generate_phrase_queries => 0,
             rewrite                      => 'constant_score_default',
-            minimum_number_should_match  => 3,
+            minimum_should_match         => 3,
             quote_analyzer               => 'standard',
             quote_field_suffix           => '.unstemmed'
         }
@@ -2383,7 +2383,7 @@ against multiple fields:
             auto_generate_phrase_queries => 0,
             use_dis_max                  => 1,
             tie_breaker                  => 0.7,
-            minimum_number_should_match  => 3,
+            minimum_should_match         => 3,
             quote_analyzer               => 'standard',
             quote_field_suffix           => '.unstemmed'
     }}
