@@ -171,7 +171,7 @@ test_filters(
             { query => { foo => 'bar' }, type => 'foo', _scope => 'scope' }
     },
     {   has_child => {
-            query  => { text => { foo => 'bar' } },
+            query  => { match => { foo => 'bar' } },
             _scope => 'scope',
             type   => 'foo'
         }
@@ -184,7 +184,7 @@ test_filters(
     {   not => {
             filter => {
                 has_child => {
-                    query  => { text => { foo => 'bar' } },
+                    query  => { match => { foo => 'bar' } },
                     _scope => 'scope',
                     type   => 'foo'
                 }
@@ -198,11 +198,11 @@ test_filters(
     'UNARY OPERATOR: query, not_query',
     'QUERY: {}',
     { -query => { k => 'v' } },
-    { query => { text => { k => 'v' } } },
+    { query => { match => { k => 'v' } } },
 
     'NOT_QUERY: {}',
     { -not_query => { k => 'v' } },
-    { not => { filter => { query => { text => { k => 'v' } } } } },
+    { not => { filter => { query => { match => { k => 'v' } } } } },
 
 );
 
@@ -239,7 +239,7 @@ test_filters(
 
     'CACHE WITH QUERY',
     { -cache => { -query => { k => 'v' } } },
-    { fquery => { _cache => 1, query => { text => { k => 'v' } } } },
+    { fquery => { _cache => 1, query => { match => { k => 'v' } } } },
 
     'CACHE WITH AND',
     { -cache => { foo => 1, bar => 2 } },
@@ -362,7 +362,7 @@ sub test_filters {
             eval {
                 eq_or_diff scalar $a->filter($in), { filter => $out }, $name;
                 1;
-                }
+            }
                 or die "*** FAILED TEST $name:***\n$@";
         }
     }

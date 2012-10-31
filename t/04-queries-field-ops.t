@@ -26,7 +26,7 @@ test_queries(
 
     'V',
     'v',
-    { text => { _all => 'v' } },
+    { match => { _all => 'v' } },
 
     '\\V',
     \'v',
@@ -38,8 +38,8 @@ test_queries(
     'KEY-VALUE PAIRS',
 
     'K: V',
-    { k    => 'v' },
-    { text => { k => 'v' } },
+    { k     => 'v' },
+    { match => { k => 'v' } },
 
     'K: UNDEF',
     { k => undef },
@@ -54,13 +54,13 @@ test_queries(
     qr/UNDEF not a supported query/,
 
     'K: [V]',
-    { k    => ['v'] },
-    { text => { k => 'v' } },
+    { k     => ['v'] },
+    { match => { k => 'v' } },
 
     'K: [V,V]',
     { k => [ 'v', 'v' ] },
     {   bool => {
-            should => [ { text => { k => 'v' } }, { text => { k => 'v' } } ]
+            should => [ { match => { k => 'v' } }, { match => { k => 'v' } } ]
         }
     },
 
@@ -78,27 +78,27 @@ test_queries(
 
 );
 
-for my $op (qw(= text)) {
+for my $op (qw(= match)) {
     test_queries(
         "FIELD OPERATOR: $op",
 
         "K: $op V",
-        { k    => { $op => 'v' } },
-        { text => { k   => 'v' } },
+        { k     => { $op => 'v' } },
+        { match => { k   => 'v' } },
 
         "K: $op UNDEF",
         { k => { $op => undef } },
         qr/ARRAYREF, HASHREF, SCALAR/,
 
         "K: $op [V]",
-        { k    => { $op => ['v'] } },
-        { text => { k   => 'v' } },
+        { k     => { $op => ['v'] } },
+        { match => { k   => 'v' } },
 
         "K: $op [V,V]",
         { k => { $op => [ 'v', 'v' ] } },
         {   bool => {
                 should =>
-                    [ { text => { k => 'v' } }, { text => { k => 'v' } } ]
+                    [ { match => { k => 'v' } }, { match => { k => 'v' } } ]
             }
         },
 
@@ -129,7 +129,7 @@ for my $op (qw(= text)) {
                 }
             }
         },
-        {   text => {
+        {   match => {
                 k => {
                     analyzer             => 'default',
                     boost                => 1,
@@ -146,13 +146,13 @@ for my $op (qw(= text)) {
     );
 }
 
-for my $op (qw(!= <> not_text)) {
+for my $op (qw(!= <> not_match)) {
     test_queries(
         "FIELD OPERATOR: $op",
 
         "K: $op V",
         { k => { $op => 'v' } },
-        { bool => { must_not => [ { text => { k => 'v' } } ] } },
+        { bool => { must_not => [ { match => { k => 'v' } } ] } },
 
         "K: $op UNDEF",
         { k => { $op => undef } },
@@ -160,13 +160,13 @@ for my $op (qw(!= <> not_text)) {
 
         "K: $op [V]",
         { k => { $op => ['v'] } },
-        { bool => { must_not => [ { text => { k => 'v' } } ] } },
+        { bool => { must_not => [ { match => { k => 'v' } } ] } },
 
         "K: $op [V,V]",
         { k => { $op => [ 'v', 'v' ] } },
         {   bool => {
                 must_not =>
-                    [ { text => { k => 'v' } }, { text => { k => 'v' } } ]
+                    [ { match => { k => 'v' } }, { match => { k => 'v' } } ]
             }
         },
 
@@ -199,7 +199,7 @@ for my $op (qw(!= <> not_text)) {
         },
         {   bool => {
                 must_not => [ {
-                        text => {
+                        match => {
                             k => {
                                 analyzer       => 'default',
                                 boost          => 1,
@@ -219,28 +219,28 @@ for my $op (qw(!= <> not_text)) {
     );
 }
 
-for my $op (qw(== phrase text_phrase)) {
+for my $op (qw(== phrase match_phrase)) {
     test_queries(
         "FIELD OPERATOR: $op",
 
         "K: $op V",
-        { k           => { $op => 'v' } },
-        { text_phrase => { k   => 'v' } },
+        { k            => { $op => 'v' } },
+        { match_phrase => { k   => 'v' } },
 
         "K: $op UNDEF",
         { k => { $op => undef } },
         qr/ARRAYREF, HASHREF, SCALAR/,
 
         "K: $op [V]",
-        { k           => { $op => ['v'] } },
-        { text_phrase => { k   => 'v' } },
+        { k            => { $op => ['v'] } },
+        { match_phrase => { k   => 'v' } },
 
         "K: $op [V,V]",
         { k => { $op => [ 'v', 'v' ] } },
         {   bool => {
                 should => [
-                    { text_phrase => { k => 'v' } },
-                    { text_phrase => { k => 'v' } }
+                    { match_phrase => { k => 'v' } },
+                    { match_phrase => { k => 'v' } }
                 ]
             }
         },
@@ -267,7 +267,7 @@ for my $op (qw(== phrase text_phrase)) {
                 }
             }
         },
-        {   text_phrase => {
+        {   match_phrase => {
                 k => {
                     analyzer => 'default',
                     boost    => 1,
@@ -279,13 +279,13 @@ for my $op (qw(== phrase text_phrase)) {
     );
 }
 
-for my $op (qw(not_phrase not_text_phrase)) {
+for my $op (qw(not_phrase not_match_phrase)) {
     test_queries(
         "FIELD OPERATOR: $op",
 
         "K: $op V",
         { k => { $op => 'v' } },
-        { bool => { must_not => [ { text_phrase => { k => 'v' } } ] } },
+        { bool => { must_not => [ { match_phrase => { k => 'v' } } ] } },
 
         "K: $op UNDEF",
         { k => { $op => undef } },
@@ -293,14 +293,14 @@ for my $op (qw(not_phrase not_text_phrase)) {
 
         "K: $op [V]",
         { k => { $op => ['v'] } },
-        { bool => { must_not => [ { text_phrase => { k => 'v' } } ] } },
+        { bool => { must_not => [ { match_phrase => { k => 'v' } } ] } },
 
         "K: $op [V,V]",
         { k => { $op => [ 'v', 'v' ] } },
         {   bool => {
                 must_not => [
-                    { text_phrase => { k => 'v' } },
-                    { text_phrase => { k => 'v' } }
+                    { match_phrase => { k => 'v' } },
+                    { match_phrase => { k => 'v' } }
                 ]
             }
         },
@@ -329,7 +329,7 @@ for my $op (qw(not_phrase not_text_phrase)) {
         },
         {   bool => {
                 must_not => [ {
-                        text_phrase => {
+                        match_phrase => {
                             k => {
                                 analyzer => 'default',
                                 boost    => 1,
@@ -447,28 +447,28 @@ for my $op (qw(not_term not_terms)) {
     );
 }
 
-for my $op (qw(^ phrase_prefix text_phrase_prefix)) {
+for my $op (qw(^ phrase_prefix match_phrase_prefix)) {
     test_queries(
         "FIELD OPERATOR: $op",
 
         "K: $op V",
-        { k                  => { $op => 'v' } },
-        { text_phrase_prefix => { k   => 'v' } },
+        { k                   => { $op => 'v' } },
+        { match_phrase_prefix => { k   => 'v' } },
 
         "K: $op UNDEF",
         { k => { $op => undef } },
         qr/ARRAYREF, HASHREF, SCALAR/,
 
         "K: $op [V]",
-        { k                  => { $op => ['v'] } },
-        { text_phrase_prefix => { k   => 'v' } },
+        { k                   => { $op => ['v'] } },
+        { match_phrase_prefix => { k   => 'v' } },
 
         "K: $op [V,V]",
         { k => { $op => [ 'v', 'v' ] } },
         {   bool => {
                 should => [
-                    { text_phrase_prefix => { k => 'v' } },
-                    { text_phrase_prefix => { k => 'v' } }
+                    { match_phrase_prefix => { k => 'v' } },
+                    { match_phrase_prefix => { k => 'v' } }
                 ]
             }
         },
@@ -496,7 +496,7 @@ for my $op (qw(^ phrase_prefix text_phrase_prefix)) {
                 }
             }
         },
-        {   text_phrase_prefix => {
+        {   match_phrase_prefix => {
                 k => {
                     query          => 'v',
                     boost          => 1,
@@ -510,14 +510,15 @@ for my $op (qw(^ phrase_prefix text_phrase_prefix)) {
     );
 }
 
-for my $op (qw(not_phrase_prefix not_text_phrase_prefix)) {
+for my $op (qw(not_phrase_prefix not_match_phrase_prefix)) {
 
     test_queries(
         "FIELD OPERATOR: $op",
 
         "K: $op V",
         { k => { $op => 'v' } },
-        {   bool => { must_not => [ { text_phrase_prefix => { k => 'v' } } ] }
+        {   bool =>
+                { must_not => [ { match_phrase_prefix => { k => 'v' } } ] }
         },
 
         "K: $op UNDEF",
@@ -526,15 +527,16 @@ for my $op (qw(not_phrase_prefix not_text_phrase_prefix)) {
 
         "K: $op [V]",
         { k => { $op => ['v'] } },
-        {   bool => { must_not => [ { text_phrase_prefix => { k => 'v' } } ] }
+        {   bool =>
+                { must_not => [ { match_phrase_prefix => { k => 'v' } } ] }
         },
 
         "K: $op [V,V]",
         { k => { $op => [ 'v', 'v' ] } },
         {   bool => {
                 must_not => [
-                    { text_phrase_prefix => { k => 'v' } },
-                    { text_phrase_prefix => { k => 'v' } }
+                    { match_phrase_prefix => { k => 'v' } },
+                    { match_phrase_prefix => { k => 'v' } }
                 ]
             }
         },
@@ -564,7 +566,7 @@ for my $op (qw(not_phrase_prefix not_text_phrase_prefix)) {
         },
         {   bool => {
                 must_not => [ {
-                        text_phrase_prefix => {
+                        match_phrase_prefix => {
                             k => {
                                 query          => 'v',
                                 boost          => 1,
@@ -1589,7 +1591,7 @@ sub test_queries {
             eval {
                 eq_or_diff scalar $a->query($in), { query => $out }, $name;
                 1;
-                }
+            }
                 or die "*** FAILED TEST $name:***\n$@";
         }
     }

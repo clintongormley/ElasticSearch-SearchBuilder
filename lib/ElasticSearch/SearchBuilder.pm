@@ -9,20 +9,20 @@ our $VERSION = '0.15';
 
 my %SPECIAL_OPS = (
     query => {
-        '='   => [ 'text',               0 ],
-        '=='  => [ 'text_phrase',        0 ],
-        '!='  => [ 'text',               1 ],
-        '<>'  => [ 'text',               1 ],
-        '>'   => [ 'range',              0 ],
-        '>='  => [ 'range',              0 ],
-        '<'   => [ 'range',              0 ],
-        '<='  => [ 'range',              0 ],
-        'gt'  => [ 'range',              0 ],
-        'lt'  => [ 'range',              0 ],
-        'gte' => [ 'range',              0 ],
-        'lte' => [ 'range',              0 ],
-        '^'   => [ 'text_phrase_prefix', 0 ],
-        '*'   => [ 'wildcard',           0 ],
+        '='   => [ 'match',               0 ],
+        '=='  => [ 'match_phrase',        0 ],
+        '!='  => [ 'match',               1 ],
+        '<>'  => [ 'match',               1 ],
+        '>'   => [ 'range',               0 ],
+        '>='  => [ 'range',               0 ],
+        '<'   => [ 'range',               0 ],
+        '<='  => [ 'range',               0 ],
+        'gt'  => [ 'range',               0 ],
+        'lt'  => [ 'range',               0 ],
+        'gte' => [ 'range',               0 ],
+        'lte' => [ 'range',               0 ],
+        '^'   => [ 'match_phrase_prefix', 0 ],
+        '*'   => [ 'wildcard',            0 ],
     },
     filter => {
         '='           => [ 'terms',   0 ],
@@ -153,7 +153,7 @@ sub _top_SCALAR {
 #===================================
     my ( $self, $type, $params ) = @_;
     return $type eq 'query'
-        ? { text => { _all => $params } }
+        ? { match => { _all => $params } }
         : { term => { _all => $params } };
 }
 
@@ -250,7 +250,7 @@ sub _hashpair_SCALAR {
 #===================================
     my ( $self, $type, $k, $v ) = @_;
     return $type eq 'query'
-        ? { text => { $k => $v } }
+        ? { match => { $k => $v } }
         : { term => { $k => $v } };
 }
 
@@ -1022,34 +1022,34 @@ sub _query_field_fuzzy {
 }
 
 #===================================
-sub _query_field_text {
+sub _query_field_match {
 #===================================
     shift->_query_field_generic(
-        @_, 'text',
+        @_, 'match',
         ['query'],
         [   qw(boost operator analyzer
-                fuzziness fuzzy_rewrite max_expansions
-                minimum_should_match prefix_length)
+                fuzziness fuzzy_rewrite rewrite max_expansions
+                minimum_should_match prefix_length type)
         ]
     );
 }
 
 #===================================
-sub _query_field_phrase        { shift->_query_field_text_phrase(@_) }
-sub _query_field_phrase_prefix { shift->_query_field_text_phrase_prefix(@_) }
+sub _query_field_phrase        { shift->_query_field_match_phrase(@_) }
+sub _query_field_phrase_prefix { shift->_query_field_match_phrase_prefix(@_) }
 #===================================
 
 #===================================
-sub _query_field_text_phrase {
+sub _query_field_match_phrase {
 #===================================
-    shift->_query_field_generic( @_, 'text_phrase', ['query'],
+    shift->_query_field_generic( @_, 'match_phrase', ['query'],
         [qw(boost slop analyzer)] );
 }
 
 #===================================
-sub _query_field_text_phrase_prefix {
+sub _query_field_match_phrase_prefix {
 #===================================
-    shift->_query_field_generic( @_, 'text_phrase_prefix', ['query'],
+    shift->_query_field_generic( @_, 'match_phrase_prefix', ['query'],
         [qw(boost analyzer slop max_expansions)] );
 }
 
@@ -1680,7 +1680,7 @@ Returns a query in the ElasticSearch query DSL.
 C<$compact_query> can be a scalar, a hash ref or an array ref.
 
     $sb->query('foo')
-    # { "query" : { "text" : { "_all" : "foo" }}}
+    # { "query" : { "match" : { "_all" : "foo" }}}
 
     $sb->query({ ... }) or $sb->query([ ... ])
     # { "query" : { ... }}
@@ -1788,7 +1788,7 @@ Switch from query context to filter context:
     # query field content for 'brown cow', and filter documents
     # where status is 'active' and tags contains the term 'perl'
     {
-        content => { text => 'brown cow' },
+        content => 'brown cow',
         -filter => {
             status => 'active',
             tags   => 'perl'
@@ -1808,14 +1808,14 @@ Use a query as a filter:
 
     # query field content for 'brown cow', and filter documents
     # where status is 'active', tags contains the term 'perl'
-    # and a text query on field title contains 'important'
+    # and a match query on field title contains 'important'
     {
-        content => { text => 'brown cow' },
+        content => 'brown cow',
         -filter => {
             status => 'active',
             tags   => 'perl',
             -query => {
-                title => { text => 'important' }
+                title => 'important'
             }
         }
     }
@@ -1825,7 +1825,7 @@ See L<Query Filter|http://www.elasticsearch.org/guide/reference/query-dsl/query-
 =head2 KEY-VALUE PAIRS
 
 Key-value pairs are equivalent to the C<=> operator, discussed below. They are
-converted to C<text> queries or C<term> filters:
+converted to C<match> queries or C<term> filters:
 
     # Field 'foo' contains term 'bar'
     # equiv: { foo => { '=' => 'bar' }}
@@ -2074,30 +2074,30 @@ relevance can be read from that field (at the cost of a slower execution time):
 These operators answer the question: "Does this field contain this term?"
 
 Filter equality operators work only with exact terms, while query equality
-operators (the C<text> family of queries) will "do the right thing", ie
+operators (the C<match> family of queries) will "do the right thing", ie
 work with terms for C<not_analyzed> fields and with analyzed text for
 C<analyzed> fields.
 
 =head2 EQUALITY (QUERIES)
 
-=head3 = | -text | != | <> | -not_text
+=head3 = | -match | != | <> | -not_match
 
-These operators all generate C<text> queries:
+These operators all generate C<match> queries:
 
     # Analyzed field 'title' contains the terms 'Perl is GREAT'
     # (which is analyzed to the terms 'perl','great')
     { title => 'Perl is GREAT' }
     { title => { '='  => 'Perl is GREAT' }}
-    { title => { text => 'Perl is GREAT' }}
+    { title => { match => 'Perl is GREAT' }}
 
     # Not_analyzed field 'status' contains the EXACT term 'ACTIVE'
     { status => 'ACTIVE' }
     { status => { '='  => 'ACTIVE' }}
-    { status => { text => 'ACTIVE' }}
+    { status => { match => 'ACTIVE' }}
 
     # Same as above but with extra parameters:
     { title => {
-        text => {
+        match => {
             query                => 'Perl is GREAT',
             boost                => 2.0,
             operator             => 'and',
@@ -2110,10 +2110,10 @@ These operators all generate C<text> queries:
         }
     }}
 
-Operators C<< <> >>, C<!=> and C<not_text> are synonyms for each other and
+Operators C<< <> >>, C<!=> and C<not_match> are synonyms for each other and
 just wrap the operator in a C<not> clause.
 
-See L<Text Query|http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html>
+See L<Match Query|http://www.elasticsearch.org/guide/reference/query-dsl/match-query.html>
 
 =head3 == | -phrase | -not_phrase
 
@@ -2142,12 +2142,12 @@ same order, but further apart:
             boost    => 1,
     }}
 
-See L<Text Query|http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html>
+See L<Match Query|http://www.elasticsearch.org/guide/reference/query-dsl/match-query.html>
 
 =head3 -term | -terms | -not_term | -not_terms
 
 The C<term>/C<terms> operators are provided for completeness.  You
-should almost always use the C<text>/C<=> operator instead.
+should almost always use the C<match>/C<=> operator instead.
 
 There are only two use cases:
 
@@ -2316,7 +2316,7 @@ and L<Exists Filter|http://www.elasticsearch.org/guide/reference/query-dsl/exist
 
 *** Query context only ***
 
-For most full text search queries, the C<text> queries are what you
+For most full text search queries, the C<match> queries are what you
 want.  These analyze the search terms, and look for documents that
 contain one or more of those terms. (See L</"EQUALITY (QUERIES)">).
 
@@ -2482,10 +2482,10 @@ and L<FLT Query|http://www.elasticsearch.org/guide/reference/query-dsl/flt-query
 
 =head3 ^ | -phrase_prefix | -not_phrase_prefix
 
-These operators use the C<text_phrase_prefix> query.
+These operators use the C<match_phrase_prefix> query.
 
 For C<analyzed> fields, it analyzes the search terms, and does a
-C<text_phrase> query, with a C<prefix> query on the last term.
+C<match_phrase> query, with a C<prefix> query on the last term.
 Think "auto-complete".
 
 For C<not_analyzed> fields, this behaves the same as the term-based
@@ -2515,7 +2515,7 @@ With extra options
         }
     }}
 
-See http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html
+See http://www.elasticsearch.org/guide/reference/query-dsl/match-query.html
 
 =head3 -prefix | -not_prefix
 
@@ -2670,8 +2670,8 @@ Unlike the C<must_not> clause of a C<bool> query, the query still matches,
 but the results are "less relevant".
 
     { -boosting => {
-        positive       => { title => { text => 'apple pear'     }},
-        negative       => { title => { text => 'apple computer' }},
+        positive       => { title => 'apple pear'     },
+        negative       => { title => 'apple computer' },
         negative_boost => 0.2
     }}
 
@@ -3058,7 +3058,7 @@ See L<Type Filter|http://www.elasticsearch.org/guide/reference/query-dsl/type-fi
 The C<limit> filter limits the number of documents (per shard) to execute on:
 
     {
-        name    => { text => 'Joe Bloggs },
+        name    => "Joe Bloggs",
         -filter => { -limit => 100       }
     }
 
@@ -3100,7 +3100,7 @@ C<-cache> or C<-nocache>:
 
     # Don't cache the term filter for 'status'
     {
-        content => { text => 'interesting post'},
+        content => 'interesting post',
         -filter => {
             -nocache => { status => 'active' }
         }
@@ -3108,7 +3108,7 @@ C<-cache> or C<-nocache>:
 
     # Do cache the numeric range filter:
     {
-        content => { text => 'interesting post'},
+        content => 'interesting post',
         -filter => {
             -cache => { created => {'>' => '2010-01-01' } }
         }
@@ -3159,7 +3159,7 @@ Would result in:
         query => {
             filtered => {
                 query => {
-                    text => { foo => 1 }
+                    match => { foo => 1 }
                 },
                 filter => {
                     term => { bar => 2 }
@@ -3299,37 +3299,37 @@ and for the search terms, otherwise the resulting terms may be different,
 and the query won't succeed.
 
 For instance, a C<term> query for C<GREATEST> wouldn't work, but C<greatest>
-would work.  However, a C<text> query for C<GREATEST> would work, because
+would work.  However, a C<match> query for C<GREATEST> would work, because
 the search text would be analyzed to produce the same terms that are stored
 in the index.
 
 See L<Analysis|http://www.elasticsearch.org/guide/reference/index-modules/analysis/>
 for the list of supported analyzers.
 
-=head2 C<text> QUERIES
+=head2 C<match> QUERIES
 
-ElasticSearch has a family of DWIM queries called C<text> queries.
+ElasticSearch has a family of DWIM queries called C<match> queries.
 
 Their action depends upon how the field has been defined. If a field is
-C<analyzed> (the default for string fields) then the C<text> queries analyze
+C<analyzed> (the default for string fields) then the C<match> queries analyze
 the search terms before doing the search:
 
     # Convert "Perl is GREAT" to the terms 'perl','great' and search
     # the 'content' field for those terms
 
-    { text: { content: "Perl is GREAT" }}
+    { match: { content: "Perl is GREAT" }}
 
 If a field is C<not_analyzed>, then it treats the search terms as a single
 term:
 
     # Find all docs where the 'status' field contains EXACTLY the term 'ACTIVE'
-    { text: { status: "ACTIVE" }}
+    { match: { status: "ACTIVE" }}
 
-Filters, on the other hand, don't have C<text> queries - filters operate on
+Filters, on the other hand, don't have full text queries - filters operate on
 simple terms instead.
 
-See L<Text Query|http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html>
-for more about text queries.
+See L<Match Query|http://www.elasticsearch.org/guide/reference/query-dsl/match-query.html>
+for more about match queries.
 
 =cut
 

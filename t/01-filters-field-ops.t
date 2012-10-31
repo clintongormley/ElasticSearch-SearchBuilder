@@ -661,7 +661,7 @@ sub test_filters {
             eval {
                 eq_or_diff scalar $a->filter($in), { filter => $out }, $name;
                 1;
-                }
+            }
                 or die "*** FAILED TEST $name:***\n$@";
         }
     }
