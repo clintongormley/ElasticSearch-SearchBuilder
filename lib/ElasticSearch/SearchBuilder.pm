@@ -554,6 +554,31 @@ sub _unary_parent {
 #======================================================================
 
 #===================================
+sub _query_unary_match {
+#===================================
+    my ( $self, $v, $op ) = @_;
+    $op ||= 'match';
+    return $self->_SWITCH_refkind(
+        "Unary query -$op",
+        $v,
+        {   HASHREF => sub {
+                my $p = $self->_hash_params(
+                    $op, $v,
+                    [ 'query', 'fields' ],
+                    [ qw(
+                            use_dis_max tie_breaker
+                            boost operator analyzer fuzziness fuzzy_rewrite
+                            rewrite max_expansions minimum_should_match
+                            prefix_length lenient slop type)
+                    ]
+                );
+                return { "multi_match" => $p };
+            },
+        }
+    );
+}
+
+#===================================
 sub _query_unary_qs { shift->_query_unary_query_string( @_, 'qs' ) }
 #===================================
 
@@ -2025,7 +2050,7 @@ An operator might apply to multiple fields:
 
     # Search fields 'title' and 'content' for text 'brown cow'
     {
-        -query_string => {
+        -match => {
             query   => 'brown cow',
             fields  => ['title','content']
         }
@@ -2167,6 +2192,37 @@ same order, but further apart:
     }}
 
 See L<Match Query|http://www.elasticsearch.org/guide/reference/query-dsl/match-query.html>
+
+=head3 Multi-field -match | -not_match
+
+To run a C<match> | C<=>, C<phrase> or C<phrase_prefix> query against
+multiple fields, you can use the C<-match> unary operator:
+
+    {
+        -match => {
+            query                => "Quick Fox",
+            type                 => 'boolean',
+            fields               => ['content','title'],
+
+            use_dis_max          => 1,
+            tie_breaker          => 0.7,
+
+            boost                => 2.0,
+            operator             => 'and',
+            analyzer             => 'default',
+            fuzziness            => 0.5,
+            fuzzy_rewrite        => 'constant_score_default',
+            lenient              => 1,
+            max_expansions       => 100,
+            minimum_should_match => 2,
+            prefix_length        => 2,
+        }
+    }
+
+The C<type> parameter can be C<boolean> (equivalent of C<match> | C<=>)
+which is the default, C<phrase> or C<phrase_prefix>.
+
+See L<Multi-match Query|http://www.elasticsearch.org/guide/reference/query-dsl/multi-match-query.html>.
 
 =head3 -term | -terms | -not_term | -not_terms
 

@@ -258,6 +258,118 @@ test_queries(
     },
 );
 
+test_queries(
+    'UNARY OPERATOR: match, not_match',
+    'MATCH: V',
+    { -match => 'v' },
+    qr/HASHREF/,
+
+    'MATCH: UNDEF',
+    { -match => undef },
+    qr/HASHREF/,
+
+    'MATCH: [V]',
+    { -match => ['v'] },
+    qr/HASHREF/,
+
+    'MATCH: {}',
+    {   -match => {
+            query                => "foo bar",
+            fields               => [ 'title', 'content' ],
+            use_dis_max          => 1,
+            tie_breaker          => 0.7,
+            boost                => 2,
+            operator             => 'and',
+            analyzer             => 'standard',
+            fuzziness            => 0.5,
+            fuzzy_rewrite        => 'constant_score_default',
+            rewrite              => 'constant_score_default',
+            max_expansions       => 1024,
+            minimum_should_match => 2,
+            prefix_length        => 2,
+            lenient              => 1,
+            slop                 => 10,
+            type                 => 'boolean'
+        }
+    },
+    {   multi_match => {
+            query                => "foo bar",
+            fields               => [ 'title', 'content' ],
+            use_dis_max          => 1,
+            tie_breaker          => 0.7,
+            boost                => 2,
+            operator             => 'and',
+            analyzer             => 'standard',
+            fuzziness            => 0.5,
+            fuzzy_rewrite        => 'constant_score_default',
+            rewrite              => 'constant_score_default',
+            max_expansions       => 1024,
+            minimum_should_match => 2,
+            prefix_length        => 2,
+            lenient              => 1,
+            slop                 => 10,
+            type                 => 'boolean'
+        }
+    },
+
+    'NOT_MATCH: V',
+    { -not_match => 'v' },
+    qr/HASHREF/,
+
+    'NOT_MATCH: UNDEF',
+    { -not_match => undef },
+    qr/HASHREF/,
+
+    'NOT_MATCH: [V]',
+    { -not_match => ['v'] },
+    qr/HASHREF/,
+
+    'NOT_MATCH: {}',
+    {   -not_match => {
+            query                => "foo bar",
+            fields               => [ 'title', 'content' ],
+            use_dis_max          => 1,
+            tie_breaker          => 0.7,
+            boost                => 2,
+            operator             => 'and',
+            analyzer             => 'standard',
+            fuzziness            => 0.5,
+            fuzzy_rewrite        => 'constant_score_default',
+            rewrite              => 'constant_score_default',
+            max_expansions       => 1024,
+            minimum_should_match => 2,
+            prefix_length        => 2,
+            lenient              => 1,
+            slop                 => 10,
+            type                 => 'boolean'
+        }
+    },
+    {   bool => {
+            must_not => [ {
+                    multi_match => {
+                        query                => "foo bar",
+                        fields               => [ 'title', 'content' ],
+                        use_dis_max          => 1,
+                        tie_breaker          => 0.7,
+                        boost                => 2,
+                        operator             => 'and',
+                        analyzer             => 'standard',
+                        fuzziness            => 0.5,
+                        fuzzy_rewrite        => 'constant_score_default',
+                        rewrite              => 'constant_score_default',
+                        max_expansions       => 1024,
+                        minimum_should_match => 2,
+                        prefix_length        => 2,
+                        lenient              => 1,
+                        slop                 => 10,
+                        type                 => 'boolean'
+                    }
+                }
+            ]
+        }
+    },
+);
+
 for my $op (qw(-qs -query_string)) {
     test_queries(
         "UNARY OPERATOR: $op",
