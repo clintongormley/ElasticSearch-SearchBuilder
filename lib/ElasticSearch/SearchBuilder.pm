@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Scalar::Util ();
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 my %SPECIAL_OPS = (
     query => {
@@ -1690,11 +1690,17 @@ ElasticSearch::SearchBuilder - A Perlish compact query language for ElasticSearc
 
 =head1 VERSION
 
-Version 0.14
+Version 0.16
 
-Compatible with ElasticSearch version 0.19.7
+Compatible with ElasticSearch version 0.19.11
 
 =cut
+
+=head1 BREAKING CHANGE
+
+The 'text' queries have been renamed 'match' queries in
+elasticsearch 0.19.9. If you need support for an older version of elasticsearch,
+please use L<https://metacpan.org/release/DRTECH/ElasticSearch-SearchBuilder-0.15/>.
 
 =head1 DESCRIPTION
 

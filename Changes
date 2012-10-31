@@ -1,4 +1,15 @@
 Revision history for ElasticSearch::SearchBuilder
+0.16    2012-10-31
+
+        BREAKING CHANGE:
+        The 'text' queries have been renamed 'match' queries in
+        elasticsearch 0.19.9.
+
+        Added 'indices' filter
+        Added 'match' multi-field query
+        Added 'has_parent' filter/query
+        Renamed 'minimum_number_should_match' to 'minimum_should_match' in -qs
+
 0.15    2012-10-03
         SearchBuilder was destroying the original hashrefs and arrayrefs for
         certain clauses. Now makes copies
