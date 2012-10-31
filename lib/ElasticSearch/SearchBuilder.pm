@@ -393,6 +393,7 @@ sub _query_unary_and { shift->_unary_and( 'query', shift, 'and' ) }
 sub _query_unary_not { shift->_unary_not( 'query', shift, ) }
 sub _query_unary_ids { shift->_unary_ids( 'query', shift ) }
 sub _query_unary_has_child { shift->_unary_child( 'query', shift ) }
+sub _query_unary_has_parent { shift->_unary_parent( 'query', shift ) }
 #===================================
 
 #===================================
@@ -402,6 +403,7 @@ sub _filter_unary_and { shift->_unary_and( 'filter', shift, 'and' ) }
 sub _filter_unary_not { shift->_unary_not( 'filter', shift, ) }
 sub _filter_unary_ids { shift->_unary_ids( 'filter', shift ) }
 sub _filter_unary_has_child { shift->_unary_child( 'filter', shift ) }
+sub _filter_unary_has_parent { shift->_unary_parent( 'filter', shift ) }
 #===================================
 
 #===================================
@@ -522,6 +524,26 @@ sub _unary_child {
                 );
                 $p->{query} = $self->_recurse( 'query', $p->{query} );
                 return { has_child => $p };
+            },
+        }
+    );
+}
+
+#===================================
+sub _unary_parent {
+#===================================
+    my ( $self, $type, $v ) = @_;
+    return $self->_SWITCH_refkind(
+        "Unary $type -has_parent",
+        $v,
+        {   HASHREF => sub {
+                my $p = $self->_hash_params(
+                    'has_parent', $v,
+                    [ 'query', 'type' ],
+                    $type eq 'query' ? [ 'boost', '_scope' ] : ['_scope']
+                );
+                $p->{query} = $self->_recurse( 'query', $p->{query} );
+                return { has_parent => $p };
             },
         }
     );
@@ -2838,6 +2860,23 @@ relationships.
 
 See L<Parent Field|http://www.elasticsearch.org/guide/reference/mapping/parent-field.html>
 for more.
+
+=head2 -has_parent | -not_has_parent
+
+Find child documents that have a parent document which matches a query.
+
+    # Find parent docs whose children of type 'comment' have the tag 'perl'
+    {
+        -has_parent => {
+            type   => 'comment',
+            query  => { tag => 'perl' },
+            _scope => 'my_scope',
+            boost  => 1,                    # Query context only
+        }
+    }
+
+See L<Has Parent Query|http://www.elasticsearch.org/guide/reference/query-dsl/has-parent-query.html>
+and See L<Has Parent Filter|http://www.elasticsearch.org/guide/reference/query-dsl/has-parent-filter.html>.
 
 =head2 -has_child | -not_has_child
 

@@ -160,6 +160,41 @@ test_filters(
 );
 
 test_filters(
+    'UNARY OPERATOR: has_parent, not_has_parent',
+
+    'HAS_PARENT: V',
+    { -has_parent => 'V' },
+    qr/HASHREF/,
+
+    'HAS_PARENT: %V',
+    {   -has_parent =>
+            { query => { foo => 'bar' }, type => 'foo', _scope => 'scope' }
+    },
+    {   has_parent => {
+            query  => { match => { foo => 'bar' } },
+            _scope => 'scope',
+            type   => 'foo'
+        }
+    },
+
+    'NOT_HAS_PARENT: %V',
+    {   -not_has_parent =>
+            { query => { foo => 'bar' }, type => 'foo', _scope => 'scope' }
+    },
+    {   not => {
+            filter => {
+                has_parent => {
+                    query  => { match => { foo => 'bar' } },
+                    _scope => 'scope',
+                    type   => 'foo'
+                }
+            }
+        }
+    },
+
+);
+
+test_filters(
     'UNARY OPERATOR: has_child, not_has_child',
 
     'HAS_CHILD: V',
