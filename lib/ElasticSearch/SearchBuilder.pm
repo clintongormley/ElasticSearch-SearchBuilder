@@ -882,6 +882,34 @@ sub _filter_unary_exists {
 }
 
 #===================================
+sub _filter_unary_indices {
+#===================================
+    my ( $self, $v ) = @_;
+    return $self->_SWITCH_refkind(
+        "Unary filter -indices",
+        $v,
+        {   HASHREF => sub {
+                my $p
+                    = $self->_hash_params( 'indices', $v,
+                    [ 'indices', 'filter' ],
+                    ['no_match_filter'] );
+                $p->{indices} = [ $p->{indices} ]
+                    unless ref $p->{indices} eq 'ARRAY';
+                $p->{filter} = $self->_recurse( 'filter', $p->{filter} );
+                my $no = delete $p->{no_match_filter};
+                if ($no) {
+                    $p->{no_match_filter}
+                        = $no =~ /^(?:all|none)$/
+                        ? $no
+                        : $self->_recurse( 'filter', $no );
+                }
+                return { indices => $p };
+            },
+        }
+    );
+}
+
+#===================================
 sub _filter_unary_type {
 #===================================
     my ( $self, $v ) = @_;
@@ -3100,9 +3128,26 @@ The `no_match_query` will be run on any indices which don't appear in the
 specified list.  It defaults to C<all>, but can be set to C<none> or to
 a full query.
 
-See L<Indices Query|https://github.com/elasticsearch/elasticsearch/issues/1416>
-and L<no_match_query|https://github.com/elasticsearch/elasticsearch/issues/1492>
-for details.
+See L<Indices Query|http://www.elasticsearch.org/guide/reference/query-dsl/indices-query.html>.
+
+*** Filter context only ***
+
+To run a different filter depending on the index name, you can use the
+C<-indices> filter:
+
+    {
+        -indices => {
+            indices         => 'one' | ['one','two],
+            filter          => { status => 'active' },
+            no_match_filter => 'all' | 'none' | { another => filter }
+        }
+    }
+
+The `no_match_filter` will be run on any indices which don't appear in the
+specified list.  It defaults to C<all>, but can be set to C<none> or to
+a full filter.
+
+See L<Indices Filter|https://github.com/elasticsearch/elasticsearch/issues/1787>.
 
 =head2 -ids
 
