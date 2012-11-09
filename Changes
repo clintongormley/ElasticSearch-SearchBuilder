@@ -1,4 +1,8 @@
 Revision history for ElasticSearch::SearchBuilder
+0.17    2012-11-09
+        Minor correction - _top_recurse on an empty clause should return
+        undef, not an empty list, as it is called in scalar context
+
 0.16    2012-10-31
 
         BREAKING CHANGE:
