@@ -1,4 +1,14 @@
 Revision history for ElasticSearch::SearchBuilder
+0.18    2012-11-25
+        BREAKING CHANGE:
+        The and/or/not logic in queries was being merged incorrectly into
+        single bool queries with top-level "must" and "should" clauses,
+        which changed the logic slightly, eg:
+        A && B && (C||D) was interpreted as A && BB && (C || D || 1)
+
+        Changed to using Test::Deep to fix the test errors caused by the
+        change in hash randomization in perl 5.17.6
+
 0.17    2012-11-09
         Minor correction - _top_recurse on an empty clause should return
         undef, not an empty list, as it is called in scalar context
