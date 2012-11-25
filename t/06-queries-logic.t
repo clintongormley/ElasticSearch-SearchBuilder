@@ -86,9 +86,16 @@ my %and_or = (
     },
     or_and => {
         bool => {
-            must   => [ { match => { c => 3 } } ],
-            should => [ { match => { a => 1 } }, { match => { b => 2 } } ]
-
+            must => bag(
+                { match => { c => 3 } },
+                {   bool => {
+                        should => [
+                            { match => { a => 1 } },
+                            { match => { b => 2 } }
+                        ]
+                    }
+                }
+            ),
         }
     },
     and_or => {
@@ -231,20 +238,34 @@ test_queries(
     'K=>[-and[],{}]',
     { k => [ -and => [ 1, 2 ], { '^' => 3 } ] },
     {   bool => {
-            must => [ { match_phrase_prefix => { k => 3 } } ],
-            should => [ { match => { k => 1 } }, { match => { k => 2 } } ]
+            must => bag(
+                { match_phrase_prefix => { k => 3 } },
+                {   bool => {
+                        should => [
+                            { match => { k => 1 } },
+                            { match => { k => 2 } }
+                        ]
+                    }
+                }
+            )
         }
     },
 
     '-and[],kv,-or{}',
     { -and => [ a => 1, b => 2 ], x => 9, -or => { c => 3, d => 4 } },
     {   bool => {
-            must => [
+            must => bag(
                 { match => { a => 1 } },
                 { match => { b => 2 } },
-                { match => { x => 9 } }
-            ],
-            should => [ { match => { c => 3 } }, { match => { d => 4 } } ],
+                { match => { x => 9 } },
+                {   bool => {
+                        should => [
+                            { match => { c => 3 } },
+                            { match => { d => 4 } }
+                        ]
+                    }
+                }
+            ),
         }
     },
 
@@ -254,9 +275,17 @@ test_queries(
         -or => { c => 3, d => 4, l => { '=' => [ 21, 22 ] } }
     },
     {   bool => {
-            must => [
+            must => bag(
                 { match => { a => 1 } },
                 { match => { b => 2 } },
+                {   bool => {
+                        should => [
+                            { match => { k => 11 } },
+                            { match => { k => 12 } }
+                        ]
+                    }
+                },
+                { match => { x => 9 } },
                 {   bool => {
                         should => [
                             { match => { c => 3 } },
@@ -266,9 +295,7 @@ test_queries(
                         ]
                     }
                 },
-                { match => { x => 9 } }
-            ],
-            should => [ { match => { k => 11 } }, { match => { k => 12 } }, ]
+            ),
         }
     },
 
@@ -278,22 +305,28 @@ test_queries(
         -and => { c => 3, d => 4, l => { '=' => [ 21, 22 ] } }
     },
     {   bool => {
-            must => [
+            must => bag(
                 { match => { c => 3 } },
                 { match => { d => 4 } },
+                {   bool => {
+                        should => [
+                            { match => { l => 21 } },
+                            { match => { l => 22 } }
+                        ]
+                    },
+                },
                 {   bool => {
                         should => [
                             { match => { a => 1 } },
                             { match => { b => 2 } },
                             { match => { k => 11 } },
                             { match => { k => 12 } },
-                        ]
-                    }
+                        ],
+                    },
                 },
                 { match => { x => 9 } },
-            ],
-            should => [ { match => { l => 21 } }, { match => { l => 22 } }, ]
-        }
+            ),
+        },
     },
 
     '[-or[],-or[],kv,-and[],[@kv,-and[],{}',
@@ -349,24 +382,27 @@ test_queries(
         ]
     },
     {   bool => {
-            must => [
-                { match_phrase_prefix => { foo => 'bar' } },
-                { range               => { foo => { lt => 'baz' } } },
+            must => bag( {
+                    bool => {
+                        should => [
+                            { match_phrase_prefix => { foo => "foo" } },
+                            { range => { foo => { gt => "moo" } } },
+                        ],
+                    },
+                },
+                { match_phrase_prefix => { foo => "bar" } },
+                { range               => { foo => { lt => "baz" } } },
                 {   bool => {
                         should => [
-                            { match_phrase_prefix => { foo => 'alpha' } },
-                            { match_phrase_prefix => { foo => 'beta' } }
-                        ]
-                    }
+                            { match_phrase_prefix => { foo => "alpha" } },
+                            { match_phrase_prefix => { foo => "beta" } },
+                        ],
+                    },
                 },
-                { match => { foo => 'koko' } }
-            ],
-            should => [
-                { match_phrase_prefix => { foo => 'foo' } },
-                { range               => { foo => { gt => 'moo' } } }
-            ],
-            must_not => [ { match => { foo => 'toto' } } ]
-        }
+                { match => { foo => "koko" } },
+            ),
+            must_not => [ { match => { foo => "toto" } } ],
+        },
     },
 
     '[-and[],-or[],k[-and{}{}]',
@@ -514,20 +550,23 @@ test_queries(
     {   bool => {
             must_not => [ {
                     bool => {
-                        must => [ {
+                        must => bag( {
                                 bool => {
                                     should => [
                                         { match => { foo => 1 } },
                                         { match => { foo => 2 } }
                                     ]
                                 }
+                            },
+                            {   bool => {
+                                    should => [
+                                        { match => { bar => 1 } },
+                                        { match => { bar => 2 } }
+                                    ]
+                                }
                             }
-                        ],
+                        ),
                         must_not => [ { match => { baz => 3 } } ],
-                        should   => [
-                            { match => { bar => 1 } },
-                            { match => { bar => 2 } }
-                        ]
                     }
                 }
             ]

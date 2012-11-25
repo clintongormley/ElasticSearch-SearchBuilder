@@ -303,30 +303,63 @@ sub _merge_bool_queries {
     my $op      = shift;
     my $queries = shift;
     my %bool;
+
     for my $query (@$queries) {
         my ( $type, $clauses ) = %$query;
         if ( $type eq 'bool' ) {
-            my @keys = keys %$clauses;
-            if ( $op eq 'must_not' ) {
-                if ( @keys == 1 and $keys[0] eq 'must_not' ) {
-                    push @{ $bool{should} }, @{ $clauses->{must_not} };
-                    next;
+            $clauses = {%$clauses};
+            my ( $must, $should, $not )
+                = map { ref $_ eq 'HASH' ? [$_] : $_ }
+                delete @{$clauses}{qw(must should must_not)};
+            if ( !keys %$clauses ) {
+                if ( $op eq 'must' ) {
+                    push @{ $bool{must} },     @$must if $must;
+                    push @{ $bool{must_not} }, @$not  if $not;
+                    next unless $should;
+                    if ( @$should == 1 ) {
+                        push @{ $bool{must} }, $should->[0];
+                        next;
+                    }
+                    elsif ( @$queries == 1 ) {
+                        push @{ $bool{should} }, @$should;
+                        next;
+                    }
+                    delete @{ $query->{bool} }{ 'must', 'must_not' };
                 }
-                unless ( $clauses->{must} or @$queries != 1 ) {
-                    my ( $should, $not )
-                        = delete @{$clauses}{ 'should', 'must_not' };
-                    $clauses->{must_not} = $should if $should;
-                    $clauses->{should}   = $not    if $not;
+                elsif ( $op eq 'should' ) {
+                    unless ($not) {
+                        if ($should) {
+                            if ( !$must ) {
+                                push @{ $bool{should} }, @$should;
+                                next;
+                            }
+                        }
+                        elsif ( $must and @$must == 1 ) {
+                            push @{ $bool{should} }, $must->[0];
+                            next;
+                        }
+                    }
                 }
-            }
-
-            if (   $op eq 'must_not' and !$clauses->{must}
-                or $op eq 'should' and @keys == 1 and $clauses->{should}
-                or $op eq 'must'
-                and !( $clauses->{should} and $bool{should} ) )
-            {
-                push @{ $bool{$_} }, @{ $clauses->{$_} } for keys %$clauses;
-                next;
+                else {
+                    if ($must) {
+                        if ( @$must == 1 and !$should and !$not ) {
+                            push @{ $bool{must_not} }, @$must;
+                            next;
+                        }
+                    }
+                    else {
+                        if ($should) {
+                            if ( !$not ) {
+                                push @{ $bool{must_not} }, @$should;
+                                next;
+                            }
+                        }
+                        elsif ($not) {
+                            push @{ $bool{must} }, @$not;
+                            next;
+                        }
+                    }
+                }
             }
         }
         push @{ $bool{$op} }, $query;
