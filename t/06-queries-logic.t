@@ -4,7 +4,8 @@ use strict;
 use warnings;
 
 use Test::More;
-use Test::Differences;
+use Test::Deep qw(cmp_details deep_diag bag);
+use Data::Dump qw(pp);
 use Test::Exception;
 use ElasticSearch::SearchBuilder;
 
@@ -74,8 +75,9 @@ test_queries(
 
 my %and_or = (
     and => {
-        bool =>
-            { must => [ { match => { a => 1 } }, { match => { b => 2 } } ] }
+        bool => {
+            must => bag( { match => { a => 1 } }, { match => { b => 2 } } )
+        }
     },
     or => {
         bool => {
@@ -93,10 +95,10 @@ my %and_or = (
         bool => {
             should => [ {
                     bool => {
-                        must => [
+                        must => bag(
                             { match => { a => 1 } },
                             { match => { b => 2 } }
-                        ]
+                        )
                     }
                 },
                 { match => { c => 3 } }
@@ -451,10 +453,10 @@ test_queries(
     {   bool => {
             must_not => [ {
                     bool => {
-                        must => [
+                        must => bag(
                             { match => { k1 => 'v' } },
                             { match => { k2 => 'v' } }
-                        ]
+                        )
                     }
                 }
             ]
@@ -466,10 +468,10 @@ test_queries(
     {   bool => {
             must_not => [ {
                     bool => {
-                        must => [
+                        must => bag(
                             { match               => { k => 'v' } },
                             { match_phrase_prefix => { k => 'v' } }
-                        ]
+                        )
                     }
                 }
             ]
@@ -489,10 +491,10 @@ test_queries(
     {   bool => {
             must_not => [ {
                     bool => {
-                        must => [
+                        must => bag(
                             { match               => { k => 'v' } },
                             { match_phrase_prefix => { k => 'v' } }
-                        ]
+                        )
                     }
                 }
             ]
@@ -543,16 +545,28 @@ sub test_queries {
         my $name = shift;
         my $in   = shift;
         my $out  = shift;
-
         if ( ref $out eq 'Regexp' ) {
             throws_ok { $a->query($in) } $out, $name;
+            next;
         }
-        else {
-            eval {
-                eq_or_diff scalar $a->query($in), { query => $out }, $name;
-                1;
-            }
-                or die "*** FAILED TEST $name:***\n$@";
+
+        my $got = $a->query($in);
+        my $expect = { query => $out };
+        my ( $ok, $stack ) = cmp_details( $got, $expect );
+
+        if ($ok) {
+            pass $name;
+            next;
         }
+
+        fail($name);
+
+        note("Got:");
+        note( pp($got) );
+        note("Expected:");
+        note( pp($expect) );
+
+        diag( deep_diag($stack) );
+
     }
 }
