@@ -1,4 +1,9 @@
 Revision history for ElasticSearch::SearchBuilder
+
+        2013-04-20
+        Support for score_type in has_child/has_parent added
+
+
 0.18    2012-11-25
         BREAKING CHANGE:
         The and/or/not logic in queries was being merged incorrectly into

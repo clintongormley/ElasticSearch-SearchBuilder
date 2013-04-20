@@ -553,7 +553,7 @@ sub _unary_child {
                 my $p = $self->_hash_params(
                     'has_child', $v,
                     [ 'query', 'type' ],
-                    $type eq 'query' ? [ 'boost', '_scope' ] : ['_scope']
+                    $type eq 'query' ? [ 'boost', '_scope', 'score_type' ] : ['_scope']
                 );
                 $p->{query} = $self->_recurse( 'query', $p->{query} );
                 return { has_child => $p };
@@ -573,7 +573,7 @@ sub _unary_parent {
                 my $p = $self->_hash_params(
                     'has_parent', $v,
                     [ 'query', 'type' ],
-                    $type eq 'query' ? [ 'boost', '_scope' ] : ['_scope']
+                    $type eq 'query' ? [ 'boost', '_scope', 'score_type' ] : ['_scope']
                 );
                 $p->{query} = $self->_recurse( 'query', $p->{query} );
                 return { has_parent => $p };
@@ -2997,6 +2997,7 @@ Find child documents that have a parent document which matches a query.
             query  => { tag => 'perl' },
             _scope => 'my_scope',
             boost  => 1,                    # Query context only
+            score_type => 'max'             # Query context only
         }
     }
 
@@ -3014,7 +3015,8 @@ Find parent documents that have child documents which match a query.
             query  => { tag => 'perl' },
             _scope => 'my_scope',
             boost  => 1,                    # Query context only
-        }
+            score_type => 'max'             # Query context only
+         }
     }
 
 See L<Has Child Query|http://www.elasticsearch.org/guide/reference/query-dsl/has-child-query.html>
