@@ -1781,7 +1781,7 @@ by specifying C<queryb>, C<filterb>, C<facet_filterb> instead.
 
 =head2 new()
 
-    my $sb = ElastiSearch::SearchBuilder->new()
+    my $sb = ElasticSearch::SearchBuilder->new()
 
 Creates a new instance of the SearchBuilder - takes no parameters.
 
