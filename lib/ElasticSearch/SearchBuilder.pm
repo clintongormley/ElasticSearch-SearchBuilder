@@ -713,6 +713,28 @@ sub _query_unary_custom_score {
 }
 
 #===================================
+sub _query_unary_constant_score {
+#===================================
+    my ( $self, $v ) = @_;
+    return $self->_SWITCH_refkind(
+        "Unary query -constant_score",
+        $v,
+        {   HASHREF => sub {
+                my $p = $self->_hash_params(
+                    'constant_score', $v,
+                    [ 'query' ],
+                    [ 'boost' ]
+                );
+                $p->{query} = $self->_recurse( 'query', $p->{query} );
+                return { constant_score => $p };
+            },
+        }
+    );
+}
+
+
+
+#===================================
 sub _query_unary_custom_filters_score {
 #===================================
     my ( $self, $v ) = @_;
