@@ -1,7 +1,10 @@
 Revision history for ElasticSearch::SearchBuilder
 
-        2013-04-20
-        Support for score_type in has_child/has_parent added
+0.19    2013-12-14
+        Support for score_type in has_child/has_parent,
+        and constant_score query - thanks to jegade
+
+        Removed docs/ folder which made installation on Windows fail.
 
 
 0.18    2012-11-25
