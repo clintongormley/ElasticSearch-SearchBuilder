@@ -5,5 +5,5 @@ perl:
   - "5.14"
   - "5.12"
 install: "cpanm --installdeps --notest --with-recommends ."
-script: "perl MAKEFILE && make && make test"
+script: "prove -v -l t/*.t"
 
